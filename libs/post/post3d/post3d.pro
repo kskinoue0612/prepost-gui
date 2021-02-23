@@ -103,7 +103,6 @@ HEADERS += post3d_global.h \
            datamodel/post3dwindowgridshapedataitem.h \
            datamodel/post3dwindowgridtypedataitem.h \
            datamodel/post3dwindowisosurfacesettingdialog.h \
-           datamodel/post3dwindownodescalardataitem.h \
            datamodel/post3dwindownodescalargroupdataitem.h \
            datamodel/post3dwindownodescalargrouptopdataitem.h \
            datamodel/post3dwindownodevectorparticledataitem.h \
@@ -159,7 +158,6 @@ SOURCES += post3dobjectbrowser.cpp \
            datamodel/post3dwindowgridshapedataitem.cpp \
            datamodel/post3dwindowgridtypedataitem.cpp \
            datamodel/post3dwindowisosurfacesettingdialog.cpp \
-           datamodel/post3dwindownodescalardataitem.cpp \
            datamodel/post3dwindownodescalargroupdataitem.cpp \
            datamodel/post3dwindownodescalargrouptopdataitem.cpp \
            datamodel/post3dwindownodevectorparticledataitem.cpp \
