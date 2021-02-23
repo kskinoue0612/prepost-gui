@@ -123,6 +123,53 @@ PostStringResultDataItem* Post3dWindowZoneDataItem::stringDataItem() const
 	return m_stringDataItem;
 }
 
+
+
+int Post3dWindowZoneDataItem::zoneNumber() const
+{
+	return m_zoneNumber;
+}
+
+const std::string& Post3dWindowZoneDataItem::zoneName() const
+{
+	return m_zoneName;
+}
+
+Post3dWindowGridShapeDataItem* Post3dWindowZoneDataItem::gridShapeDataItem() const
+{
+	return m_shapeDataItem;
+}
+
+Post3dWindowContourGroupTopDataItem* Post3dWindowZoneDataItem::contourGroupTopItem() const
+{
+	return m_contourGroupTopItem;
+}
+
+Post3dWindowNodeScalarGroupTopDataItem* Post3dWindowZoneDataItem::scalarGroupDataItem() const
+{
+	return m_scalarGroupDataItem;
+}
+
+Post3dWindowArrowGroupDataItem* Post3dWindowZoneDataItem::arrowGroupDataItem() const
+{
+	return m_arrowGroupDataItem;
+}
+
+Post3dWindowNodeVectorStreamlineGroupDataItem* Post3dWindowZoneDataItem::streamlineGroupDataItem() const
+{
+	return m_streamlineGroupDataItem;
+}
+
+Post3dWindowNodeVectorParticleGroupDataItem* Post3dWindowZoneDataItem::particleGroupDataItem() const
+{
+	return m_particleGroupDataItem;
+}
+
+Post3dWindowParticlesTopDataItem* Post3dWindowZoneDataItem::particlesDataItem() const
+{
+	return m_particlesDataItem;
+}
+
 void Post3dWindowZoneDataItem::doLoadFromProjectMainFile(const QDomNode& node)
 {
 	QDomNode shapeNode = iRIC::getChildNode(node, "Shape");
