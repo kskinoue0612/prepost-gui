@@ -7,6 +7,7 @@
 #include "post3dwindowgridtypedataitem.h"
 #include "post3dwindownodescalargroupdataitem.h"
 #include "post3dwindownodescalargrouptopdataitem.h"
+#include "post3dwindownodevectorarrowtopdataitem.h"
 #include "post3dwindownodevectorparticlegroupstructureddataitem.h"
 #include "post3dwindownodevectorstreamlinegroupstructureddataitem.h"
 #include "post3dwindowparticlegrouprootdataitem.h"
@@ -52,6 +53,7 @@ Post3dWindowZoneDataItem::Post3dWindowZoneDataItem(const std::string& zoneName, 
 	m_shapeDataItem {nullptr},
 	m_contourGroupTopItem {nullptr},
 	m_scalarGroupDataItem {nullptr},
+	m_arrowTopDataItem {nullptr},
 	m_arrowGroupDataItem {nullptr},
 	m_streamlineGroupDataItem {nullptr},
 	m_particleGroupDataItem {nullptr},
@@ -72,6 +74,7 @@ Post3dWindowZoneDataItem::Post3dWindowZoneDataItem(const std::string& zoneName, 
 	}
 
 	if (cont->vectorValueExists()) {
+		m_arrowTopDataItem = new Post3dWindowNodeVectorArrowTopDataItem(this);
 		m_arrowGroupDataItem = new Post3dWindowArrowGroupDataItem(this);
 		m_streamlineGroupDataItem = new Post3dWindowNodeVectorStreamlineGroupStructuredDataItem(this);
 		m_particleGroupDataItem = new Post3dWindowNodeVectorParticleGroupStructuredDataItem(this);
@@ -95,6 +98,7 @@ Post3dWindowZoneDataItem::Post3dWindowZoneDataItem(const std::string& zoneName, 
 	}
 
 	if (cont->vectorValueExists()) {
+		m_childItems.push_back(m_arrowTopDataItem);
 		m_childItems.push_back(m_arrowGroupDataItem);
 		m_childItems.push_back(m_streamlineGroupDataItem);
 		m_childItems.push_back(m_particleGroupDataItem);
