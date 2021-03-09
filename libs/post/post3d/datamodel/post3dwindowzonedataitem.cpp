@@ -286,6 +286,9 @@ void Post3dWindowZoneDataItem::update()
 	if (m_contourGroupTopItem != nullptr) {
 		m_contourGroupTopItem->update();
 	}
+	if (m_cellContourGroupTopItem != nullptr) {
+		m_cellContourGroupTopItem->update();
+	}
 	if (m_scalarGroupDataItem != nullptr) {
 		m_scalarGroupDataItem->update();
 	}

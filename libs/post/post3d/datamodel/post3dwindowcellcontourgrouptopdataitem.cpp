@@ -19,11 +19,14 @@
 #include <QMessageBox>
 #include <QXmlStreamWriter>
 
-#include <vtkActor.h>
-#include <vtkDataSetMapper.h>
-#include <vtkRenderer.h>
 
+#include <vtkActor.h>
+#include <vtkCellData.h>
+#include <vtkDataSetMapper.h>
+#include <vtkExtractCells.h>
+#include <vtkIdList.h>
 #include <vtkPointData.h>
+#include <vtkRenderer.h>
 
 Post3dWindowCellContourGroupTopDataItem::Post3dWindowCellContourGroupTopDataItem(Post3dWindowDataItem* p) :
 	Post3dWindowDataItem {tr("Contours (cell center)"), QIcon(":/libs/guibase/images/iconFolder.png"), p},
@@ -41,18 +44,6 @@ Post3dWindowCellContourGroupTopDataItem::Post3dWindowCellContourGroupTopDataItem
 	m_actor->SetMapper(m_mapper);
 
 	renderer()->AddActor(m_actor);
-
-	Post3dWindowGridTypeDataItem* gtItem = dynamic_cast<Post3dWindowGridTypeDataItem*>(parent()->parent());
-	Post3dWindowZoneDataItem* zItem = dynamic_cast<Post3dWindowZoneDataItem*>(parent());
-
-	m_mapper->SetInputData(zItem->dataContainer()->data());
-	LookupTableContainer* lookup = gtItem->cellLookupTable("test1");
-	if (lookup != nullptr) {
-		m_mapper->SetLookupTable(lookup->vtkObj());
-		m_mapper->UseLookupTableScalarRangeOn();
-		m_mapper->SetScalarModeToUseCellFieldData();
-		m_mapper->SelectColorArray("test1");
-	}
 
 }
 
@@ -112,6 +103,30 @@ void Post3dWindowCellContourGroupTopDataItem::doSaveToProjectMainFile(QXmlStream
 
 void Post3dWindowCellContourGroupTopDataItem::update()
 {
+	Post3dWindowGridTypeDataItem* gtItem = dynamic_cast<Post3dWindowGridTypeDataItem*>(parent()->parent());
+	Post3dWindowZoneDataItem* zItem = dynamic_cast<Post3dWindowZoneDataItem*>(parent());
+
+	vtkPointSet* ps = zItem->dataContainer()->data();
+
+	auto cFilter = vtkSmartPointer<vtkExtractCells>::New();
+	cFilter->SetInputData(ps);
+
+	auto ids = vtkSmartPointer<vtkIdList>::New();
+	ids->InsertNextId(0);
+	ids->InsertNextId(1);
+	ids->InsertNextId(2);
+	cFilter->SetCellList(ids);
+
+	m_mapper->SetInputConnection(cFilter->GetOutputPort());
+
+	LookupTableContainer* lookup = gtItem->cellLookupTable("test1");
+	if (lookup != nullptr) {
+		m_mapper->SetLookupTable(lookup->vtkObj());
+		m_mapper->UseLookupTableScalarRangeOn();
+		m_mapper->SetScalarModeToUseCellFieldData();
+		m_mapper->SelectColorArray("test1");
+	}
+
 	/*
 	for (auto item : m_childItems) {
 		auto child = dynamic_cast<Post3dWindowCellContourGroupDataItem*>(item);
