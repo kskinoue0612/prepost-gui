@@ -29,6 +29,9 @@ private:
 	double m_zScale;
 
 	class CreateCommand;
+
+public:
+	friend class Post3dWindowCellContourGroupDataItem;
 };
 
 #endif // POST3DWINDOWCELLCONTOURGROUPTOPDATAITEM_H

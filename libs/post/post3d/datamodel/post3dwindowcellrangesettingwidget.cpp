@@ -2,6 +2,10 @@
 #include "ui_post3dwindowcellrangesettingwidget.h"
 #include "../post3dcellrangesettingcontainer.h"
 
+#include <guicore/postcontainer/postzonedatacontainer.h>
+
+#include <vtkStructuredGrid.h>
+
 Post3dWindowCellRangeSettingWidget::Post3dWindowCellRangeSettingWidget(QWidget *parent) :
 	QWidget(parent),
 	ui(new Ui::Post3dWindowCellRangeSettingWidget)
@@ -16,29 +20,38 @@ Post3dWindowCellRangeSettingWidget::~Post3dWindowCellRangeSettingWidget()
 
 void Post3dWindowCellRangeSettingWidget::setZoneData(PostZoneDataContainer* zd)
 {
+	auto grid = dynamic_cast<vtkStructuredGrid*>(zd->data());
+	int dims[3];
+	grid->GetDimensions(dims);
 
+	ui->iMinSlider->setRange(1, dims[0]-1);
+	ui->iMaxSlider->setRange(1, dims[0]-1);
+	ui->jMinSlider->setRange(1, dims[1]-1);
+	ui->jMaxSlider->setRange(1, dims[1]-1);
+	ui->kMinSlider->setRange(1, dims[2]-1);
+	ui->kMaxSlider->setRange(1, dims[2]-1);
 }
 
 void Post3dWindowCellRangeSettingWidget::setSetting(const Post3dCellRangeSettingContainer& setting)
 {
 	ui->enabledCheckBox->setChecked(setting.enabled);
-	ui->iMinSlider->setValue(setting.iMin);
-	ui->iMaxSlider->setValue(setting.iMax);
-	ui->jMinSlider->setValue(setting.jMin);
-	ui->jMaxSlider->setValue(setting.jMax);
-	ui->kMinSlider->setValue(setting.kMin);
-	ui->kMaxSlider->setValue(setting.kMax);
+	ui->iMinSlider->setValue(setting.iMin + 1);
+	ui->iMaxSlider->setValue(setting.iMax + 1);
+	ui->jMinSlider->setValue(setting.jMin + 1);
+	ui->jMaxSlider->setValue(setting.jMax + 1);
+	ui->kMinSlider->setValue(setting.kMin + 1);
+	ui->kMaxSlider->setValue(setting.kMax + 1);
 }
 Post3dCellRangeSettingContainer Post3dWindowCellRangeSettingWidget::setting() const
 {
 	Post3dCellRangeSettingContainer setting;
 	setting.enabled = ui->enabledCheckBox->isChecked();
-	setting.iMin = ui->iMinSlider->value();
-	setting.iMax = ui->iMaxSlider->value();
-	setting.jMin = ui->jMinSlider->value();
-	setting.jMax = ui->jMaxSlider->value();
-	setting.kMin = ui->kMinSlider->value();
-	setting.kMax = ui->kMaxSlider->value();
+	setting.iMin = ui->iMinSlider->value() - 1;
+	setting.iMax = ui->iMaxSlider->value() - 1;
+	setting.jMin = ui->jMinSlider->value() - 1;
+	setting.jMax = ui->jMaxSlider->value() - 1;
+	setting.kMin = ui->kMinSlider->value() - 1;
+	setting.kMax = ui->kMaxSlider->value() - 1;
 
 	return setting;
 }

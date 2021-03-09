@@ -1,9 +1,11 @@
+#include "post3dwindowcellcontourgroupdataitem.h"
 #include "post3dwindowcellcontourgroupsettingdialog.h"
 #include "post3dwindowcellcontourgrouptopdataitem.h"
 #include "post3dwindowgridtypedataitem.h"
 #include "post3dwindowzonedataitem.h"
 #include "post3dwindowcellrangesettingwidget.h"
 #include "../post3dcellrangesettingcontainer.h"
+#include "private/post3dwindowcellcontourgrouptopdataitem_createcommand.h"
 
 #include <guibase/objectbrowserview.h>
 #include <guibase/scalarsettingcontainer.h>
@@ -158,6 +160,8 @@ void Post3dWindowCellContourGroupTopDataItem::handleAddDialogAccepted(QDialog* p
 	auto dialog = dynamic_cast<Post3dWindowCellContourGroupSettingDialog*> (propDialog);
 	auto scalarSetting = dialog->scalarSetting();
 	auto rangeSettings = dialog->rangeSettings();
+	auto lookupTable = dialog->lookupTable();
+	auto scalarBarTitle = dialog->scalarBarTitle();
 
-	pushRenderCommand(new CreateCommand(scalarSetting, rangeSettings, this), this);
+	pushRenderCommand(new CreateCommand(scalarSetting, rangeSettings, lookupTable, scalarBarTitle, this), this);
 }

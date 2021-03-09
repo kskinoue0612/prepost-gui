@@ -74,7 +74,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1">
             <item>
-             <widget class="QListWidget" name="faceListWidget">
+             <widget class="QListWidget" name="rangeListWidget">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -86,7 +86,7 @@
             <item>
              <layout class="QVBoxLayout" name="verticalLayout">
               <item>
-               <widget class="Post3dWindowFaceSettingWidget" name="faceSettingWidget" native="true"/>
+               <widget class="Post3dWindowCellRangeSettingWidget" name="rangeSettingWidget" native="true"/>
               </item>
               <item>
                <spacer name="verticalSpacer_3">
@@ -192,9 +192,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>Post3dWindowFaceSettingWidget</class>
+   <class>Post3dWindowCellRangeSettingWidget</class>
    <extends>QWidget</extends>
-   <header>datamodel/post3dwindowfacesettingwidget.h</header>
+   <header>post3dwindowcellrangesettingwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

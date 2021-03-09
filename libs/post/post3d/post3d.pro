@@ -85,7 +85,6 @@ win32 {
 
 # Input
 HEADERS += post3d_global.h \
-           datamodel/private/post3dwindowcellcontourgrouptopdataitem_createcommand.h \
            post3dcellrangesettingcontainer.h \
            post3dobjectbrowser.h \
            post3dobjectbrowserview.h \
@@ -97,6 +96,8 @@ HEADERS += post3d_global.h \
            post3dwindowprojectdataitem.h \
            datamodel/post3dwindowarrowgroupdataitem.h \
            datamodel/post3dwindowarrowgroupsettingdialog.h \
+           datamodel/post3dwindowcellcontourdataitem.h \
+           datamodel/post3dwindowcellcontourgroupdataitem.h \
            datamodel/post3dwindowcellcontourgroupsettingdialog.h \
            datamodel/post3dwindowcellcontourgrouptopdataitem.h \
            datamodel/post3dwindowcellrangesettingwidget.h \
@@ -134,6 +135,8 @@ HEADERS += post3d_global.h \
            datamodel/private/post3dwindowarrowgroupdataitem_setsettingcommand.h \
            datamodel/private/post3dwindowarrowgroupdataitem_updateonredocommand.h \
            datamodel/private/post3dwindowarrowgroupdataitem_updateonundocommand.h \
+           datamodel/private/post3dwindowcellcontourgroupdataitem_setsettingcommand.h \
+           datamodel/private/post3dwindowcellcontourgrouptopdataitem_createcommand.h \
            datamodel/private/post3dwindowcontourgroupdataitem_setsettingcommand.h \
            datamodel/private/post3dwindownodescalargroupdataitem_setsettingcommand.h \
            datamodel/private/post3dwindownodevectorparticlegroupstructureddataitem_setsettingcommand.h \
@@ -148,9 +151,8 @@ FORMS += datamodel/post3dwindowarrowgroupsettingdialog.ui \
          datamodel/post3dwindowisosurfacesettingdialog.ui \
          datamodel/post3dwindowparticlestructuredsettingdialog.ui \
          datamodel/post3dwindowstreamlinestructuredsettingdialog.ui
-SOURCES += post3dobjectbrowser.cpp \
-           datamodel/private/post3dwindowcellcontourgrouptopdataitem_createcommand.cpp \
-           post3dcellrangesettingcontainer.cpp \
+SOURCES += post3dcellrangesettingcontainer.cpp \
+           post3dobjectbrowser.cpp \
            post3dobjectbrowserview.cpp \
            post3dwindow.cpp \
            post3dwindowactionmanager.cpp \
@@ -160,6 +162,8 @@ SOURCES += post3dobjectbrowser.cpp \
            post3dwindowprojectdataitem.cpp \
            datamodel/post3dwindowarrowgroupdataitem.cpp \
            datamodel/post3dwindowarrowgroupsettingdialog.cpp \
+           datamodel/post3dwindowcellcontourdataitem.cpp \
+           datamodel/post3dwindowcellcontourgroupdataitem.cpp \
            datamodel/post3dwindowcellcontourgroupsettingdialog.cpp \
            datamodel/post3dwindowcellcontourgrouptopdataitem.cpp \
            datamodel/post3dwindowcellrangesettingwidget.cpp \
@@ -197,6 +201,8 @@ SOURCES += post3dobjectbrowser.cpp \
            datamodel/private/post3dwindowarrowgroupdataitem_setsettingcommand.cpp \
            datamodel/private/post3dwindowarrowgroupdataitem_updateonredocommand.cpp \
            datamodel/private/post3dwindowarrowgroupdataitem_updateonundocommand.cpp \
+           datamodel/private/post3dwindowcellcontourgroupdataitem_setsettingcommand.cpp \
+           datamodel/private/post3dwindowcellcontourgrouptopdataitem_createcommand.cpp \
            datamodel/private/post3dwindowcontourgroupdataitem_setsettingcommand.cpp \
            datamodel/private/post3dwindownodescalargroupdataitem_setsettingcommand.cpp \
            datamodel/private/post3dwindownodevectorparticlegroupstructureddataitem_setsettingcommand.cpp \
