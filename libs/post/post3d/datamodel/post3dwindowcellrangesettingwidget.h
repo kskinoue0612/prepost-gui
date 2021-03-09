@@ -8,30 +8,20 @@ class Post3dWindowCellRangeSettingWidget;
 }
 
 class PostZoneDataContainer;
+class Post3dCellRangeSettingContainer;
 
 class Post3dWindowCellRangeSettingWidget : public QWidget
 {
 	Q_OBJECT
 
 public:
-	class Setting {
-	public:
-		bool enabled;
-		unsigned int iMin;
-		unsigned int iMax;
-		unsigned int jMin;
-		unsigned int jMax;
-		unsigned int kMin;
-		unsigned int kMax;
-	};
-
 	explicit Post3dWindowCellRangeSettingWidget(QWidget *parent = nullptr);
 	~Post3dWindowCellRangeSettingWidget();
 
 	void setZoneData(PostZoneDataContainer* zd);
 
-	void setSetting(const Setting& setting);
-	Setting setting() const;
+	void setSetting(const Post3dCellRangeSettingContainer& setting);
+	Post3dCellRangeSettingContainer setting() const;
 
 private slots:
 	void iMinChanged(int imin);

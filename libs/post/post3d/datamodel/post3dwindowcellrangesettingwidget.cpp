@@ -1,5 +1,6 @@
 #include "post3dwindowcellrangesettingwidget.h"
 #include "ui_post3dwindowcellrangesettingwidget.h"
+#include "../post3dcellrangesettingcontainer.h"
 
 Post3dWindowCellRangeSettingWidget::Post3dWindowCellRangeSettingWidget(QWidget *parent) :
 	QWidget(parent),
@@ -18,7 +19,7 @@ void Post3dWindowCellRangeSettingWidget::setZoneData(PostZoneDataContainer* zd)
 
 }
 
-void Post3dWindowCellRangeSettingWidget::setSetting(const Setting& setting)
+void Post3dWindowCellRangeSettingWidget::setSetting(const Post3dCellRangeSettingContainer& setting)
 {
 	ui->enabledCheckBox->setChecked(setting.enabled);
 	ui->iMinSlider->setValue(setting.iMin);
@@ -28,9 +29,9 @@ void Post3dWindowCellRangeSettingWidget::setSetting(const Setting& setting)
 	ui->kMinSlider->setValue(setting.kMin);
 	ui->kMaxSlider->setValue(setting.kMax);
 }
-Post3dWindowCellRangeSettingWidget::Setting Post3dWindowCellRangeSettingWidget::setting() const
+Post3dCellRangeSettingContainer Post3dWindowCellRangeSettingWidget::setting() const
 {
-	Setting setting;
+	Post3dCellRangeSettingContainer setting;
 	setting.enabled = ui->enabledCheckBox->isChecked();
 	setting.iMin = ui->iMinSlider->value();
 	setting.iMax = ui->iMaxSlider->value();

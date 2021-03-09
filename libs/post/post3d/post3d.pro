@@ -85,6 +85,8 @@ win32 {
 
 # Input
 HEADERS += post3d_global.h \
+           datamodel/private/post3dwindowcellcontourgrouptopdataitem_createcommand.h \
+           post3dcellrangesettingcontainer.h \
            post3dobjectbrowser.h \
            post3dobjectbrowserview.h \
            post3dwindow.h \
@@ -147,6 +149,8 @@ FORMS += datamodel/post3dwindowarrowgroupsettingdialog.ui \
          datamodel/post3dwindowparticlestructuredsettingdialog.ui \
          datamodel/post3dwindowstreamlinestructuredsettingdialog.ui
 SOURCES += post3dobjectbrowser.cpp \
+           datamodel/private/post3dwindowcellcontourgrouptopdataitem_createcommand.cpp \
+           post3dcellrangesettingcontainer.cpp \
            post3dobjectbrowserview.cpp \
            post3dwindow.cpp \
            post3dwindowactionmanager.cpp \
