@@ -20,6 +20,7 @@
 #include <QMenu>
 #include <QXmlStreamWriter>
 
+#include <vtkCellData.h>
 #include <vtkPointData.h>
 
 namespace {
@@ -85,7 +86,10 @@ LookupTableContainer* Post3dWindowGridTypeDataItem::nodeLookupTable(const std::s
 
 LookupTableContainer* Post3dWindowGridTypeDataItem::cellLookupTable(const std::string& attName)
 {
-	return nullptr;
+	if (m_cellLookupTables.find(attName) == m_cellLookupTables.end()) {
+		setupCellScalarsToColors(attName);
+	}
+	return m_cellLookupTables.value(attName, nullptr);
 }
 
 LookupTableContainer* Post3dWindowGridTypeDataItem::particleLookupTable(const std::string& attName)
@@ -146,6 +150,7 @@ void Post3dWindowGridTypeDataItem::update()
 	}
 	// update LookupTable range.
 	updateNodeLookupTableRanges();
+	updateCellLookupTableRanges();
 	updateParticleLookupTableRanges();
 
 	for (Post3dWindowZoneDataItem* item : m_zoneDatas) {
@@ -158,14 +163,39 @@ void Post3dWindowGridTypeDataItem::updateNodeLookupTableRanges()
 	for (auto it = m_nodeLookupTables.begin(); it != m_nodeLookupTables.end(); ++it) {
 		std::string name = it.key();
 		ScalarsToColorsContainer* cont = it.value();
+
 		std::vector<vtkDataArray*> da;
 		for (auto zit = m_zoneDatas.begin(); zit != m_zoneDatas.end(); ++zit) {
 			Post3dWindowZoneDataItem* zitem = *zit;
 			PostZoneDataContainer* cont = zitem->dataContainer();
 			if (cont == nullptr) {continue;}
 			if (cont->data() == nullptr) {continue;}
+
 			vtkDataArray* dArray = cont->data()->GetPointData()->GetArray(name.c_str());
 			if (dArray == nullptr) {continue;}
+
+			da.push_back(dArray);
+		}
+		ScalarsToColorsContainerUtil::setValueRange(cont, da);
+	}
+}
+
+void Post3dWindowGridTypeDataItem::updateCellLookupTableRanges()
+{
+	for (auto it = m_cellLookupTables.begin(); it != m_cellLookupTables.end(); ++it) {
+		std::string name = it.key();
+		ScalarsToColorsContainer* cont = it.value();
+
+		std::vector<vtkDataArray*> da;
+		for (auto zit = m_zoneDatas.begin(); zit != m_zoneDatas.end(); ++zit) {
+			Post3dWindowZoneDataItem* zitem = *zit;
+			PostZoneDataContainer* cont = zitem->dataContainer();
+			if (cont == nullptr) {continue;}
+			if (cont->data() == nullptr) {continue;}
+
+			vtkDataArray* dArray = cont->data()->GetCellData()->GetArray(name.c_str());
+			if (dArray == nullptr) {continue;}
+
 			da.push_back(dArray);
 		}
 		ScalarsToColorsContainerUtil::setValueRange(cont, da);
@@ -262,13 +292,20 @@ void Post3dWindowGridTypeDataItem::doSaveToProjectMainFile(QXmlStreamWriter& wri
 
 void Post3dWindowGridTypeDataItem::setupNodeScalarsToColors(const std::string& name)
 {
-	LookupTableContainer* c = new LookupTableContainer(this);
+	auto c = new LookupTableContainer(this);
 	m_nodeLookupTables.insert(name, c);
 }
 
+void Post3dWindowGridTypeDataItem::setupCellScalarsToColors(const std::string& name)
+{
+	auto c = new LookupTableContainer(this);
+	m_cellLookupTables.insert(name, c);
+}
+
+
 void Post3dWindowGridTypeDataItem::setupParticleScalarsToColors(const std::string& name)
 {
-	LookupTableContainer* c = new LookupTableContainer(this);
+	auto c = new LookupTableContainer(this);
 	m_particleLookupTables.insert(name, c);
 }
 

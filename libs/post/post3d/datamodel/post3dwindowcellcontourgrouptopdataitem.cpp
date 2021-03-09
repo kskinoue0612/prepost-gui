@@ -19,6 +19,10 @@
 #include <QMessageBox>
 #include <QXmlStreamWriter>
 
+#include <vtkActor.h>
+#include <vtkDataSetMapper.h>
+#include <vtkRenderer.h>
+
 #include <vtkPointData.h>
 
 Post3dWindowCellContourGroupTopDataItem::Post3dWindowCellContourGroupTopDataItem(Post3dWindowDataItem* p) :
@@ -31,10 +35,33 @@ Post3dWindowCellContourGroupTopDataItem::Post3dWindowCellContourGroupTopDataItem
 	for (std::string name : vtkDataSetAttributesTool::getArrayNamesWithOneComponent(cont->data()->GetPointData())) {
 		m_colorBarTitleMap.insert(name, name.c_str());
 	}
+	m_actor = vtkActor::New();
+	m_mapper = vtkDataSetMapper::New();
+
+	m_actor->SetMapper(m_mapper);
+
+	renderer()->AddActor(m_actor);
+
+	Post3dWindowGridTypeDataItem* gtItem = dynamic_cast<Post3dWindowGridTypeDataItem*>(parent()->parent());
+	Post3dWindowZoneDataItem* zItem = dynamic_cast<Post3dWindowZoneDataItem*>(parent());
+
+	m_mapper->SetInputData(zItem->dataContainer()->data());
+	LookupTableContainer* lookup = gtItem->cellLookupTable("test1");
+	if (lookup != nullptr) {
+		m_mapper->SetLookupTable(lookup->vtkObj());
+		m_mapper->UseLookupTableScalarRangeOn();
+		m_mapper->SetScalarModeToUseCellFieldData();
+		m_mapper->SelectColorArray("test1");
+	}
+
 }
 
 Post3dWindowCellContourGroupTopDataItem::~Post3dWindowCellContourGroupTopDataItem()
 {
+	renderer()->RemoveActor(m_actor);
+
+	m_actor->Delete();
+	m_mapper->Delete();
 }
 
 void Post3dWindowCellContourGroupTopDataItem::doLoadFromProjectMainFile(const QDomNode& node)

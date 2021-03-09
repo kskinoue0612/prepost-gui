@@ -5,6 +5,9 @@
 
 #include <QMap>
 
+class vtkActor;
+class vtkDataSetMapper;
+
 class Post3dWindowCellContourGroupTopDataItem : public Post3dWindowDataItem
 {
 	Q_OBJECT
@@ -31,6 +34,10 @@ private:
 	class CreateCommand;
 
 	QAction* m_addAction;
+
+
+	vtkActor* m_actor;
+	vtkDataSetMapper* m_mapper;
 };
 
 #endif // POST3DWINDOWCELLCONTOURGROUPTOPDATAITEM_H
