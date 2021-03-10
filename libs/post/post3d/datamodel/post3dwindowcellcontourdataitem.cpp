@@ -13,18 +13,18 @@
 #include <QXmlStreamWriter>
 
 #include <vtkActor.h>
-#include <vtkDataSetMapper.h>
 #include <vtkExtractCells.h>
 #include <vtkExtractGrid.h>
 #include <vtkGeometryFilter.h>
 #include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
 
 Post3dWindowCellContourDataItem::Post3dWindowCellContourDataItem(const QString& label, Post3dWindowDataItem* p) :
 	Post3dWindowDataItem(label, QIcon(":/libs/guibase/images/iconPaper.png"), p),
 	m_actor {vtkActor::New()},
-	m_mapper {vtkDataSetMapper::New()},
+	m_mapper {vtkPolyDataMapper::New()},
 	m_polyData {vtkPolyData::New()}
 {
 	setupStandardItem(Checked, NotReorderable, Deletable);
@@ -34,19 +34,8 @@ Post3dWindowCellContourDataItem::Post3dWindowCellContourDataItem(const QString& 
 	renderer()->AddActor(m_actor);
 
 	Post3dWindowZoneDataItem* zItem = dynamic_cast<Post3dWindowZoneDataItem*>(parent()->parent()->parent());
-	m_mapper->SetInputData(zItem->dataContainer()->data());
-	/*
-	Post3dWindowGridTypeDataItem* gtItem = dynamic_cast<Post3dWindowGridTypeDataItem*>(parent()->parent()->parent()->parent());
-	Post3dWindowZoneDataItem* zItem = dynamic_cast<Post3dWindowZoneDataItem*>(parent()->parent()->parent());
-
-	LookupTableContainer* lookup = gtItem->cellLookupTable("test1");
-	if (lookup != nullptr) {
-		m_mapper->SetLookupTable(lookup->vtkObj());
-		m_mapper->UseLookupTableScalarRangeOn();
-		m_mapper->SetScalarModeToUseCellFieldData();
-		m_mapper->SelectColorArray("test1");
-	}
-	*/
+	m_mapper->SetInputData(m_polyData);
+	//m_mapper->SetInputData(zItem->dataContainer()->data());
 
 	updateActorSettings();
 }
@@ -105,8 +94,6 @@ void Post3dWindowCellContourDataItem::updateActorSettings()
 
 void Post3dWindowCellContourDataItem::updatePolyData()
 {
-	return;
-
 	m_polyData->Initialize();
 	auto zItem = dynamic_cast<Post3dWindowZoneDataItem*> (parent()->parent()->parent());
 	if (zItem == nullptr) {return;}
@@ -114,6 +101,12 @@ void Post3dWindowCellContourDataItem::updatePolyData()
 	auto data = zItem->dataContainer()->data();
 	if (data == nullptr) {return;}
 
+	auto gFilter = vtkSmartPointer<vtkGeometryFilter>::New();
+	gFilter->SetInputData(data);
+	gFilter->Update();
+	m_polyData->DeepCopy(gFilter->GetOutput());
+
+	/*
 	auto gItem = dynamic_cast<Post3dWindowCellContourGroupDataItem*> (parent());
 	auto lut = gItem->lookupTable();
 
@@ -127,6 +120,7 @@ void Post3dWindowCellContourDataItem::updatePolyData()
 	m_polyData->DeepCopy(gFilter->GetOutput());
 	extracted->Delete();
 	extracted2->Delete();
+	*/
 }
 
 void Post3dWindowCellContourDataItem::updateColorSetting()

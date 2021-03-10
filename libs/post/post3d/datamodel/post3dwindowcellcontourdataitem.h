@@ -5,7 +5,7 @@
 #include "../post3dwindowdataitem.h"
 
 class vtkActor;
-class vtkDataSetMapper;
+class vtkPolyDataMapper;
 class vtkPolyData;
 
 class Post3dWindowCellContourDataItem : public Post3dWindowDataItem
@@ -30,7 +30,7 @@ private:
 	void updateColorSetting();
 
 	vtkActor* m_actor;
-	vtkDataSetMapper* m_mapper;
+	vtkPolyDataMapper* m_mapper;
 	vtkPolyData* m_polyData;
 
 	Post3dCellRangeSettingContainer m_setting;
