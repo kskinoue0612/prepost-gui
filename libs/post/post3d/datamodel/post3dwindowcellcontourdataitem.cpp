@@ -33,28 +33,12 @@ Post3dWindowCellContourDataItem::Post3dWindowCellContourDataItem(const QString& 
 
 	renderer()->AddActor(m_actor);
 
-	Post3dWindowGridTypeDataItem* gtItem = dynamic_cast<Post3dWindowGridTypeDataItem*>(parent()->parent()->parent()->parent());
 	Post3dWindowZoneDataItem* zItem = dynamic_cast<Post3dWindowZoneDataItem*>(parent()->parent()->parent());
-
 	m_mapper->SetInputData(zItem->dataContainer()->data());
-	LookupTableContainer* lookup = gtItem->cellLookupTable("test1");
-	if (lookup != nullptr) {
-		m_mapper->SetLookupTable(lookup->vtkObj());
-		m_mapper->UseLookupTableScalarRangeOn();
-		m_mapper->SetScalarModeToUseCellFieldData();
-		m_mapper->SelectColorArray("test1");
-	}
-
 	/*
-	m_actor->SetMapper(m_mapper);
-	// m_mapper->SetInputData(m_polyData);
-
-	renderer()->AddActor(m_actor);
-
 	Post3dWindowGridTypeDataItem* gtItem = dynamic_cast<Post3dWindowGridTypeDataItem*>(parent()->parent()->parent()->parent());
 	Post3dWindowZoneDataItem* zItem = dynamic_cast<Post3dWindowZoneDataItem*>(parent()->parent()->parent());
 
-	m_mapper->SetInputData(zItem->dataContainer()->data());
 	LookupTableContainer* lookup = gtItem->cellLookupTable("test1");
 	if (lookup != nullptr) {
 		m_mapper->SetLookupTable(lookup->vtkObj());
@@ -62,10 +46,9 @@ Post3dWindowCellContourDataItem::Post3dWindowCellContourDataItem(const QString& 
 		m_mapper->SetScalarModeToUseCellFieldData();
 		m_mapper->SelectColorArray("test1");
 	}
+	*/
 
-
-	//updateActorSettings();
-*/
+	updateActorSettings();
 }
 
 Post3dWindowCellContourDataItem::~Post3dWindowCellContourDataItem()
@@ -148,13 +131,14 @@ void Post3dWindowCellContourDataItem::updatePolyData()
 
 void Post3dWindowCellContourDataItem::updateColorSetting()
 {
-	return;
-
 	auto typedi = dynamic_cast<Post3dWindowGridTypeDataItem*>(parent()->parent()->parent()->parent());
 	auto gi = dynamic_cast<Post3dWindowCellContourGroupDataItem*> (parent());
-	auto lookupTable = typedi->cellLookupTable(iRIC::toStr(gi->setting().target));
-	const auto& s = m_setting;
 
-	m_mapper->SetScalarModeToUseCellData();
+	auto target = iRIC::toStr(gi->setting().target);
+	auto lookupTable = typedi->cellLookupTable(target);
+
 	m_mapper->SetLookupTable(lookupTable->vtkObj());
+	m_mapper->UseLookupTableScalarRangeOn();
+	m_mapper->SetScalarModeToUseCellFieldData();
+	m_mapper->SelectColorArray(target.c_str());
 }
