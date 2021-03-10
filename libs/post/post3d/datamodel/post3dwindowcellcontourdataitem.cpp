@@ -101,12 +101,6 @@ void Post3dWindowCellContourDataItem::updatePolyData()
 	auto data = zItem->dataContainer()->data();
 	if (data == nullptr) {return;}
 
-	auto gFilter = vtkSmartPointer<vtkGeometryFilter>::New();
-	gFilter->SetInputData(data);
-	gFilter->Update();
-	m_polyData->DeepCopy(gFilter->GetOutput());
-
-	/*
 	auto gItem = dynamic_cast<Post3dWindowCellContourGroupDataItem*> (parent());
 	auto lut = gItem->lookupTable();
 
@@ -120,7 +114,6 @@ void Post3dWindowCellContourDataItem::updatePolyData()
 	m_polyData->DeepCopy(gFilter->GetOutput());
 	extracted->Delete();
 	extracted2->Delete();
-	*/
 }
 
 void Post3dWindowCellContourDataItem::updateColorSetting()
