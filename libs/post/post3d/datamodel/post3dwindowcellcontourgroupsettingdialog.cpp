@@ -111,7 +111,9 @@ QString Post3dWindowCellContourGroupSettingDialog::scalarBarTitle()
 
 void Post3dWindowCellContourGroupSettingDialog::accept()
 {
+	ui->lookupTableWidget->save();
 	saveCurrentRange();
+
 	QDialog::accept();
 }
 

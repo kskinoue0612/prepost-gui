@@ -30,14 +30,10 @@ Post3dWindowCellContourDataItem::Post3dWindowCellContourDataItem(const QString& 
 	setupStandardItem(Checked, NotReorderable, Deletable);
 
 	m_actor->SetMapper(m_mapper);
+	m_mapper->SetInputData(m_polyData);
 
 	renderer()->AddActor(m_actor);
-
-	Post3dWindowZoneDataItem* zItem = dynamic_cast<Post3dWindowZoneDataItem*>(parent()->parent()->parent());
-	m_mapper->SetInputData(m_polyData);
-	//m_mapper->SetInputData(zItem->dataContainer()->data());
-
-	updateActorSettings();
+	actorCollection()->AddItem(m_actor);
 }
 
 Post3dWindowCellContourDataItem::~Post3dWindowCellContourDataItem()
@@ -106,7 +102,7 @@ void Post3dWindowCellContourDataItem::updatePolyData()
 
 	auto grid = dynamic_cast<vtkStructuredGrid*> (data);
 	auto extracted = m_setting.extractRegion(grid);
-	auto extracted2 = gItem->setting().filterCellsWithUpperLower(extracted, lut);
+	auto extracted2 = gItem->setting().filterCellsWithUpperLower(extracted, *lut);
 	auto gFilter = vtkSmartPointer<vtkGeometryFilter>::New();
 	gFilter->SetInputData(extracted2);
 	gFilter->Update();

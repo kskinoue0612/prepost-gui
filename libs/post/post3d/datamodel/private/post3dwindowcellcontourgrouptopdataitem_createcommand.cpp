@@ -15,7 +15,7 @@ Post3dWindowCellContourGroupTopDataItem::CreateCommand::CreateCommand(const Scal
 	m_item {item}
 {
 	auto gtItem = dynamic_cast<Post3dWindowGridTypeDataItem*> (m_item->parent()->parent());
-	m_oldLookupTable = gtItem->cellLookupTable(iRIC::toStr(m_scalarSetting.target));
+	m_oldLookupTable = *(gtItem->cellLookupTable(iRIC::toStr(m_scalarSetting.target)));
 	m_oldScalarBarTitle = m_item->m_colorBarTitleMap[m_scalarSetting.target];
 }
 
