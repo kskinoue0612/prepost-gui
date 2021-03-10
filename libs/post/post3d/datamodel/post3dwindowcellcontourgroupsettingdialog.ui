@@ -6,16 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>661</width>
-    <height>363</height>
+    <width>462</width>
+    <height>189</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Contour Setting (cell center)</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_6">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
+    <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,1,0">
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
@@ -108,14 +108,14 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
-             <widget class="QPushButton" name="faceAddButton">
+             <widget class="QPushButton" name="rangeAddButton">
               <property name="text">
                <string>&amp;Add</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="faceRemoveButton">
+             <widget class="QPushButton" name="rangeRemoveButton">
               <property name="text">
                <string>&amp;Remove</string>
               </property>

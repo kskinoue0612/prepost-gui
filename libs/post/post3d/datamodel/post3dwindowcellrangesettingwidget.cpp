@@ -11,6 +11,13 @@ Post3dWindowCellRangeSettingWidget::Post3dWindowCellRangeSettingWidget(QWidget *
 	ui(new Ui::Post3dWindowCellRangeSettingWidget)
 {
 	ui->setupUi(this);
+
+	connect(ui->iMinSlider, SIGNAL(valueChanged(int)), this, SLOT(iMinChanged(int)));
+	connect(ui->iMaxSlider, SIGNAL(valueChanged(int)), this, SLOT(iMaxChanged(int)));
+	connect(ui->jMinSlider, SIGNAL(valueChanged(int)), this, SLOT(jMinChanged(int)));
+	connect(ui->jMaxSlider, SIGNAL(valueChanged(int)), this, SLOT(jMaxChanged(int)));
+	connect(ui->kMinSlider, SIGNAL(valueChanged(int)), this, SLOT(kMinChanged(int)));
+	connect(ui->kMaxSlider, SIGNAL(valueChanged(int)), this, SLOT(kMaxChanged(int)));
 }
 
 Post3dWindowCellRangeSettingWidget::~Post3dWindowCellRangeSettingWidget()

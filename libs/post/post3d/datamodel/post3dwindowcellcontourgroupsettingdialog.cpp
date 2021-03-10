@@ -1,18 +1,30 @@
+#include "post3dwindowgridtypedataitem.h"
 #include "post3dwindowcellcontourgroupsettingdialog.h"
 #include "ui_post3dwindowcellcontourgroupsettingdialog.h"
 
 #include <guibase/comboboxtool.h>
-#include <guibase/scalarsettingcontainer.h>
+#include <guibase/scalarbardialog.h>
 #include <guibase/vtkdatasetattributestool.h>
 #include <guicore/postcontainer/postzonedatacontainer.h>
+#include <misc/stringtool.h>
 
+#include <vtkCellData.h>
 #include <vtkStructuredGrid.h>
 
 Post3dWindowCellContourGroupSettingDialog::Post3dWindowCellContourGroupSettingDialog(QWidget *parent) :
 	QDialog(parent),
+	m_currentRow {-1},
 	ui(new Ui::Post3dWindowCellContourGroupSettingDialog)
 {
 	ui->setupUi(this);
+	ui->lookupTableWidget->hideDivisionNumber();
+	ui->lookupTableWidget->setContainer(&m_lookupTable);
+
+	connect(ui->valueComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(solutionChanged(int)));
+	connect(ui->rangeAddButton, SIGNAL(clicked()), this, SLOT(addRange()));
+	connect(ui->rangeRemoveButton, SIGNAL(clicked()), this, SLOT(removeRange()));
+	connect(ui->rangeListWidget, SIGNAL(currentRowChanged(int)), this, SLOT(setCurrentRange(int)));
+	connect(ui->colorbarSettingButton, SIGNAL(clicked()), this, SLOT(showColorBarDialog()));
 }
 
 Post3dWindowCellContourGroupSettingDialog::~Post3dWindowCellContourGroupSettingDialog()
@@ -22,7 +34,7 @@ Post3dWindowCellContourGroupSettingDialog::~Post3dWindowCellContourGroupSettingD
 
 void Post3dWindowCellContourGroupSettingDialog::setGridTypeDataItem(Post3dWindowGridTypeDataItem* item)
 {
-
+	m_gridTypeDataItem = item;
 }
 
 void Post3dWindowCellContourGroupSettingDialog::setZoneData(PostZoneDataContainer* zoneData)
@@ -33,7 +45,7 @@ void Post3dWindowCellContourGroupSettingDialog::setZoneData(PostZoneDataContaine
 	auto gType = zoneData->gridType();
 	auto cd = zoneData->data()->GetCellData();
 
-	m_targets = vtkDataSetAttributesTool::getArrayNamesWithMultipleComponents(cd);
+	m_targets = vtkDataSetAttributesTool::getArrayNamesWithOneComponent(cd);
 	ComboBoxTool::setupItems(gType->solutionCaptions(m_targets), ui->valueComboBox);
 
 	ui->rangeSettingWidget->setZoneData(zoneData);
@@ -41,12 +53,12 @@ void Post3dWindowCellContourGroupSettingDialog::setZoneData(PostZoneDataContaine
 
 void Post3dWindowCellContourGroupSettingDialog::setColorBarTitleMap(const QMap<std::string, QString>& titleMap)
 {
-
+	m_colorBarTitleMap = titleMap;
 }
 
 ScalarSettingContainer Post3dWindowCellContourGroupSettingDialog::scalarSetting() const
 {
-	ScalarSettingContainer ret;
+	ScalarSettingContainer ret = m_scalarSetting;
 
 	ret.target = ui->valueComboBox->currentText();
 	ret.fillUpper = ui->lookupTableWidget->fillUpper();
@@ -57,6 +69,8 @@ ScalarSettingContainer Post3dWindowCellContourGroupSettingDialog::scalarSetting(
 
 void Post3dWindowCellContourGroupSettingDialog::setScalarSetting(const ScalarSettingContainer& setting)
 {
+	m_scalarSetting = setting;
+
 	ui->valueComboBox->setCurrentText(setting.target);
 	ui->lookupTableWidget->setFillUpper(setting.fillUpper);
 	ui->lookupTableWidget->setFillLower(setting.fillLower);
@@ -92,12 +106,13 @@ void Post3dWindowCellContourGroupSettingDialog::setRangeSettings(const std::vect
 
 QString Post3dWindowCellContourGroupSettingDialog::scalarBarTitle()
 {
-
+	return m_colorBarTitleMap[target()];
 }
 
 void Post3dWindowCellContourGroupSettingDialog::accept()
 {
-
+	saveCurrentRange();
+	QDialog::accept();
 }
 
 void Post3dWindowCellContourGroupSettingDialog::addRange()
@@ -163,13 +178,35 @@ void Post3dWindowCellContourGroupSettingDialog::setCurrentRange(int row)
 	m_currentRow = row;
 }
 
+void Post3dWindowCellContourGroupSettingDialog::solutionChanged(int index)
+{
+	auto target = m_targets.at(index);
+	auto lut = m_gridTypeDataItem->cellLookupTable(target);
+	m_lookupTable = *lut;
+	ui->lookupTableWidget->setContainer(&m_lookupTable);
+}
+
+void Post3dWindowCellContourGroupSettingDialog::showColorBarDialog()
+{
+	ScalarBarDialog dialog(this);
+
+	dialog.setSetting(m_scalarSetting.scalarBarSetting);
+	dialog.setTitle(m_colorBarTitleMap[target()]);
+
+	int ret = dialog.exec();
+	if (ret == QDialog::Rejected) {return;}
+
+	m_scalarSetting.scalarBarSetting = dialog.setting();
+	m_colorBarTitleMap[target()] = dialog.title();
+}
+
 void Post3dWindowCellContourGroupSettingDialog::updateRangeList()
 {
 	auto w = ui->rangeListWidget;
 	w->blockSignals(true);
 
 	w->clear();
-	int idx;
+	int idx = 1;
 	for (auto rs : m_rangeSettings) {
 		w->addItem(tr("Range%1").arg(idx));
 		++idx;
@@ -185,4 +222,9 @@ void Post3dWindowCellContourGroupSettingDialog::saveCurrentRange()
 	auto w = ui->rangeSettingWidget;
 
 	rs = w->setting();
+}
+
+std::string Post3dWindowCellContourGroupSettingDialog::target() const
+{
+	return iRIC::toStr(ui->valueComboBox->currentText());
 }

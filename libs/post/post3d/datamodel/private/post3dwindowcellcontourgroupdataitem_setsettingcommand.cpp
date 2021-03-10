@@ -8,7 +8,7 @@
 
 Post3dWindowCellContourGroupDataItem::SetSettingCommand::SetSettingCommand(const ScalarSettingContainer& scalarSetting, const std::vector<Post3dCellRangeSettingContainer>& rangeSettings, const LookupTableContainer& lookupTable, QString& scalarBarTitle, Post3dWindowCellContourGroupDataItem* item) :
 	m_newScalarSetting {scalarSetting},
-	m_newRangeSettings (m_newRangeSettings),
+	m_newRangeSettings (rangeSettings),
 	m_newLookupTable {lookupTable},
 	m_newScalarBarTitle {scalarBarTitle},
 	m_item {item}

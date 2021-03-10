@@ -132,6 +132,13 @@ void Post3dWindowGridTypeDataItem::setupZoneDataItems()
 			}
 			updateNodeLookupTableRanges();
 		}
+		if (m_cellLookupTables.size() == 0 && zones.size() != 0) {
+			vtkCellData* cd = zCont->data()->GetCellData();
+			for (std::string name : vtkDataSetAttributesTool::getArrayNamesWithOneComponent(cd)) {
+				setupCellScalarsToColors(name);
+			}
+			updateCellLookupTableRanges();
+		}
 		if (zCont->particleData() != nullptr && m_particleLookupTables.count() == 0 && zones.size() != 0) {
 			vtkPointData* pd = zCont->particleData()->GetPointData();
 			for (std::string name : vtkDataSetAttributesTool::getArrayNamesWithOneComponent(pd)) {

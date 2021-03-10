@@ -9,6 +9,7 @@
 
 #include <guibase/objectbrowserview.h>
 #include <guibase/scalarsettingcontainer.h>
+#include <guibase/vtkdatasetattributestool.h>
 #include <guicore/postcontainer/postzonedatacontainer.h>
 #include <misc/stringtool.h>
 
@@ -37,6 +38,11 @@ Post3dWindowCellContourGroupTopDataItem::Post3dWindowCellContourGroupTopDataItem
 	Post3dWindowDataItem {tr("Contours (cell center)"), QIcon(":/libs/guibase/images/iconFolder.png"), p}
 {
 	setupStandardItem(Checked, NotReorderable, NotDeletable);
+
+	PostZoneDataContainer* cont = dynamic_cast<Post3dWindowZoneDataItem*>(parent())->dataContainer();
+	for (std::string name : vtkDataSetAttributesTool::getArrayNamesWithOneComponent(cont->data()->GetCellData())) {
+		m_colorBarTitleMap.insert(name, name.c_str());
+	}
 }
 
 double Post3dWindowCellContourGroupTopDataItem::zScale() const
@@ -150,6 +156,8 @@ QDialog* Post3dWindowCellContourGroupTopDataItem::addDialog(QWidget* p)
 	std::vector<Post3dCellRangeSettingContainer> rangeSettings;
 	dialog->setRangeSettings(rangeSettings);
 
+	auto *lookupTable = gtItem->cellLookupTable(iRIC::toStr(scalarSetting.target));
+	dialog->setLookupTable(*lookupTable);
 	dialog->setColorBarTitleMap(m_colorBarTitleMap);
 
 	return dialog;

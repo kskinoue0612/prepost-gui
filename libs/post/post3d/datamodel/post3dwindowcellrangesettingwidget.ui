@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>215</width>
-    <height>270</height>
+    <width>214</width>
+    <height>280</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>214</width>
+    <height>280</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -154,6 +160,9 @@
      <property name="text">
       <string>Enabled</string>
      </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item>
@@ -179,5 +188,22 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>enabledCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>rangeGroupBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>42</x>
+     <y>249</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>42</x>
+     <y>231</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

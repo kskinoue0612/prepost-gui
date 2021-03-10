@@ -27,10 +27,14 @@ Post3dWindowCellContourDataItem::Post3dWindowCellContourDataItem(const QString& 
 	m_mapper {vtkDataSetMapper::New()},
 	m_polyData {vtkPolyData::New()}
 {
+	setupStandardItem(Checked, NotReorderable, Deletable);
+
 	m_actor->SetMapper(m_mapper);
 	m_mapper->SetInputData(m_polyData);
 
 	renderer()->AddActor(m_actor);
+
+	updateActorSettings();
 }
 
 Post3dWindowCellContourDataItem::~Post3dWindowCellContourDataItem()

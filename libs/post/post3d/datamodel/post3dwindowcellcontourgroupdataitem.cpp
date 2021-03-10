@@ -132,6 +132,8 @@ QDialog* Post3dWindowCellContourGroupDataItem::propertyDialog(QWidget* p)
 	dialog->setZoneData(zoneData);
 	dialog->setScalarSetting(m_setting);
 	dialog->setRangeSettings(rangeSettings);
+	auto *lookupTable = gtItem->cellLookupTable(iRIC::toStr(m_setting.target));
+	dialog->setLookupTable(*lookupTable);
 	dialog->setColorBarTitleMap(tItem->m_colorBarTitleMap);
 
 	return dialog;
