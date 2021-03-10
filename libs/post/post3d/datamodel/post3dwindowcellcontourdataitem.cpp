@@ -29,12 +29,46 @@ Post3dWindowCellContourDataItem::Post3dWindowCellContourDataItem(const QString& 
 {
 	setupStandardItem(Checked, NotReorderable, Deletable);
 
+	auto actor = vtkActor::New();
+	auto mapper = vtkDataSetMapper::New();
+
+	actor->SetMapper(mapper);
+
+	renderer()->AddActor(actor);
+
+	Post3dWindowGridTypeDataItem* gtItem = dynamic_cast<Post3dWindowGridTypeDataItem*>(parent()->parent()->parent()->parent());
+	Post3dWindowZoneDataItem* zItem = dynamic_cast<Post3dWindowZoneDataItem*>(parent()->parent()->parent());
+
+	mapper->SetInputData(zItem->dataContainer()->data());
+	LookupTableContainer* lookup = gtItem->cellLookupTable("test1");
+	if (lookup != nullptr) {
+		mapper->SetLookupTable(lookup->vtkObj());
+		mapper->UseLookupTableScalarRangeOn();
+		mapper->SetScalarModeToUseCellFieldData();
+		mapper->SelectColorArray("test1");
+	}
+
+	/*
 	m_actor->SetMapper(m_mapper);
-	m_mapper->SetInputData(m_polyData);
+	// m_mapper->SetInputData(m_polyData);
 
 	renderer()->AddActor(m_actor);
 
-	updateActorSettings();
+	Post3dWindowGridTypeDataItem* gtItem = dynamic_cast<Post3dWindowGridTypeDataItem*>(parent()->parent()->parent()->parent());
+	Post3dWindowZoneDataItem* zItem = dynamic_cast<Post3dWindowZoneDataItem*>(parent()->parent()->parent());
+
+	m_mapper->SetInputData(zItem->dataContainer()->data());
+	LookupTableContainer* lookup = gtItem->cellLookupTable("test1");
+	if (lookup != nullptr) {
+		m_mapper->SetLookupTable(lookup->vtkObj());
+		m_mapper->UseLookupTableScalarRangeOn();
+		m_mapper->SetScalarModeToUseCellFieldData();
+		m_mapper->SelectColorArray("test1");
+	}
+
+
+	//updateActorSettings();
+*/
 }
 
 Post3dWindowCellContourDataItem::~Post3dWindowCellContourDataItem()

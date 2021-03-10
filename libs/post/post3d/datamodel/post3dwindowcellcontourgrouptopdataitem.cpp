@@ -20,20 +20,6 @@
 
 #include <vtkCellData.h>
 
-/*
-#include "post3dwindowcellcontourgrouptopdataitem.h"
-
-#include "post3dwindowcontourgroupdataitem.h"
-#include "post3dwindowcontourgroupsettingdialog.h"
-
-#include <guibase/graphicsmisc.h>
-#include <guibase/vtkdatasetattributestool.h>
-#include <misc/iricundostack.h>
-
-#include <QAction>
-#include <QDomElement>
-*/
-
 Post3dWindowCellContourGroupTopDataItem::Post3dWindowCellContourGroupTopDataItem(Post3dWindowDataItem* p) :
 	Post3dWindowDataItem {tr("Contours (cell center)"), QIcon(":/libs/guibase/images/iconFolder.png"), p}
 {
