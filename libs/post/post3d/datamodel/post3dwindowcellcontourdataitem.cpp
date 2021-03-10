@@ -29,11 +29,9 @@ Post3dWindowCellContourDataItem::Post3dWindowCellContourDataItem(const QString& 
 {
 	setupStandardItem(Checked, NotReorderable, Deletable);
 
-	auto actor = vtkActor::New();
+	m_actor->SetMapper(m_mapper);
 
-	actor->SetMapper(m_mapper);
-
-	renderer()->AddActor(actor);
+	renderer()->AddActor(m_actor);
 
 	Post3dWindowGridTypeDataItem* gtItem = dynamic_cast<Post3dWindowGridTypeDataItem*>(parent()->parent()->parent()->parent());
 	Post3dWindowZoneDataItem* zItem = dynamic_cast<Post3dWindowZoneDataItem*>(parent()->parent()->parent());
