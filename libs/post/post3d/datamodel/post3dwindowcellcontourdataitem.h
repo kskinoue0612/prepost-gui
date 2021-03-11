@@ -10,6 +10,8 @@ class vtkPolyData;
 
 class Post3dWindowCellContourDataItem : public Post3dWindowDataItem
 {
+	Q_OBJECT
+
 public:
 	Post3dWindowCellContourDataItem(const QString& label, Post3dWindowDataItem* p);
 	~Post3dWindowCellContourDataItem();
