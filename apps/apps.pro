@@ -9,4 +9,5 @@ CONFIG += ordered
 SUBDIRS = \
 	iricgui \
 	iricmigui \
-	rivmaker
+	rivmaker \
+	tin_simplify
