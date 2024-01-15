@@ -81,15 +81,6 @@ vtkPolyData* TinSimplifier::buildTINFromContour(vtkPolyData* pd)
 
 	auto lines = pd->GetLines();
 
-	/*
-	auto ids = vtkSmartPointer<vtkIdList>::New();
-	std::vector<int> seglist;
-	for (int i = 0; i < lines->GetNumberOfCells(); ++i) {
-		lines->GetCell(i, ids);
-		seglist.push_back(ids->GetId(0) + 1);
-		seglist.push_back(ids->GetId(1) + 1);
-	}
-	*/
 	std::vector<int> tmp_seglist;
 	std::set<Edge> edges;
 	vtkIdType npts;
@@ -102,17 +93,6 @@ vtkPolyData* TinSimplifier::buildTINFromContour(vtkPolyData* pd)
 			edges.insert(Edge(id1, id2));
 		}
 	}
-	/*
-
-	for (int i = 0; i < lines->GetNumberOfCells(); ++i) {
-		lines->GetCell(i, ids);
-		for (int j = 0; j < ids->GetNumberOfIds() - 1; ++j) {
-			edges.insert(Edge(ids->GetId(j), ids->GetId(j + 1)));
-			tmp_seglist.push_back(ids->GetId(j));
-			tmp_seglist.push_back(ids->GetId(j + 1));
-		}
-	}
-	*/
 
 	std::vector<int> seglist;
 	seglist.reserve(edges.size() * 2);
