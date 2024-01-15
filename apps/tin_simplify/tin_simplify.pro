@@ -2,6 +2,8 @@ TEMPLATE = app
 TARGET = tin_simplify
 CONFIG += debug_and_release
 
+DEFINES += ANSI_DECLARATORS
+
 include( ../../paths.pri )
 
 ######################
@@ -15,12 +17,12 @@ unix {
 }
 LIBS += -liricGui
 
-#iricMisc library
+#iricTriangle library
 
 unix {
-	LIBS += -L"../../libs/misc"
+        LIBS += -L"../../libs/triangle"
 }
-LIBS += -liricMisc
+LIBS += -liricTriangle
 
 ######################
 # External libraries #
@@ -31,26 +33,20 @@ LIBS += -liricMisc
 LIBS += \
 	-lvtkCommonCore-$${VTK_MAJ_MIN} \
 	-lvtkCommonDataModel-$${VTK_MAJ_MIN} \
-	-lvtkInteractionStyle-$${VTK_MAJ_MIN} \
-	-lvtkIOExport-$${VTK_MAJ_MIN} \
-	-lvtkRenderingFreeType-$${VTK_MAJ_MIN} \
-
-equals(VTK_MAJOR_VERSION, 6):equals(VTK_MINOR_VERSION, 1) {
-    LIBS += \
-	    -lvtkRenderingFreeTypeOpenGL-$${VTK_MAJ_MIN} \
-	    -lvtkRenderingOpenGL-$${VTK_MAJ_MIN}
-}
-
-equals(VTK_MAJOR_VERSION, 8):equals(VTK_MINOR_VERSION, 2) {
-    LIBS += \
-	    -lvtkIOExportOpenGL2-$${VTK_MAJ_MIN} \
-	    -lvtkRenderingGL2PSOpenGL2-$${VTK_MAJ_MIN} \
-	    -lvtkRenderingOpenGL2-$${VTK_MAJ_MIN}
-}
+	-lvtkCommonExecutionModel-$${VTK_MAJ_MIN} \
+	-lvtkFiltersCore-$${VTK_MAJ_MIN} \
+	-lvtkIOCore-$${VTK_MAJ_MIN} \
+	-lvtkIOLegacy-$${VTK_MAJ_MIN}
 
 win32 {
 	LIBS += -L$(SolutionDir)/libdlls/$(Configuration)
 }
 
 # Input
-SOURCES += main/main.cpp
+SOURCES += main/main.cpp \
+    main/pointsloader.cpp \
+    main/tinsimplifier.cpp
+
+HEADERS += \
+    main/pointsloader.h \
+    main/tinsimplifier.h
