@@ -4,6 +4,7 @@
 #include <triangle/triangleutil.h>
 
 #include <vtkContourFilter.h>
+#include <vtkDoubleArray.h>
 #include <vtkIdList.h>
 #include <vtkPolyData.h>
 #include <vtkPointData.h>
@@ -11,6 +12,9 @@
 
 #include <cmath>
 #include <set>
+#include <unordered_map>
+
+namespace {
 
 struct Edge {
 	Edge(vtkIdType i1, vtkIdType i2) :
@@ -28,6 +32,20 @@ struct Edge {
 	vtkIdType id1;
 	vtkIdType id2;
 };
+
+int newPointId(std::unordered_map<int, int>* pointMapId, int *nextPointId, int origPointId)
+{
+	auto it = pointMapId->find(origPointId);
+	if (it != pointMapId->end()) {return it->second;}
+
+	int newId = *nextPointId;
+	pointMapId->insert({origPointId, newId});
+	++ *nextPointId;
+
+	return newId;
+}
+
+} // namespace
 
 vtkPolyData* TinSimplifier::buildContour(vtkPolyData* input, double scale)
 {
@@ -67,17 +85,9 @@ vtkPolyData* TinSimplifier::buildTINFromContour(vtkPolyData* pd)
 	TriangleUtil::clearTriangulateio(&out);
 
 	std::vector<double> pointlist;
-	auto points = pd->GetPoints();
-	pointlist.reserve(points->GetNumberOfPoints() * 2);
-	for (vtkIdType i = 0; i < points->GetNumberOfPoints(); ++i) {
-		double v[3];
-		points->GetPoint(i, v);
-		pointlist.push_back(v[0]);
-		pointlist.push_back(v[1]);
-	}
 
-	in.numberofpoints = pointlist.size() / 2;
-	in.pointlist = pointlist.data();
+	int nextPointId = 0;
+	std::unordered_map<int, int> pointIdMap;
 
 	auto lines = pd->GetLines();
 
@@ -87,9 +97,8 @@ vtkPolyData* TinSimplifier::buildTINFromContour(vtkPolyData* pd)
 	vtkIdType *pts = nullptr;
 	for (lines->InitTraversal(); lines->GetNextCell(npts, pts); ) {
 		for (int j = 0; j < npts - 1; ++j) {
-			vtkIdType id1 = *(pts + j);
-			vtkIdType id2 = *(pts + j + 1);
-
+			vtkIdType id1 = newPointId(&pointIdMap, &nextPointId, *(pts + j));
+			vtkIdType id2 = newPointId(&pointIdMap, &nextPointId, *(pts + j + 1));
 			edges.insert(Edge(id1, id2));
 		}
 	}
@@ -104,12 +113,45 @@ vtkPolyData* TinSimplifier::buildTINFromContour(vtkPolyData* pd)
 	in.numberofsegments = seglist.size() / 2;
 	in.segmentlist = seglist.data();
 
+	auto points = pd->GetPoints();
+	pointlist.reserve(pointIdMap.size() * 2);
+
+	std::vector<int> idVec;
+	idVec.assign(pointIdMap.size(), 0);
+
+	for (const auto& pair : pointIdMap) {
+		idVec[pair.second] = pair.first;
+	}
+
+	auto newPoints = vtkSmartPointer<vtkPoints>::New();
+	newPoints->SetDataTypeToDouble();
+
+	auto oldValues = pd->GetPointData()->GetArray("value");
+	auto newValues = vtkSmartPointer<vtkDoubleArray>::New();
+	newValues->SetName("value");
+
+	for (int i = 0; i < static_cast<int> (idVec.size()); ++i) {
+		double v[3];
+		points->GetPoint(idVec[i], v);
+		pointlist.push_back(v[0]);
+		pointlist.push_back(v[1]);
+
+		newPoints->InsertNextPoint(v);
+
+		double value = oldValues->GetTuple1(idVec[i]);
+		newValues->InsertNextValue(value);
+	}
+
+	in.numberofpoints = pointlist.size() / 2;
+	in.pointlist = pointlist.data();
+
 	char triangle_arg[] = "pcj";
 
 	triangulate(triangle_arg, &in, &out, nullptr);
 
 	auto ret = vtkPolyData::New();
-	ret->SetPoints(points);
+
+	ret->SetPoints(newPoints);
 
 	auto tris = vtkCellArray::New();
 	for (int i = 0; i < out.numberoftriangles; ++i) {
@@ -120,8 +162,7 @@ vtkPolyData* TinSimplifier::buildTINFromContour(vtkPolyData* pd)
 		tris->InsertNextCell(3, ids);
 	}
 	ret->SetPolys(tris);
-	auto da = pd->GetPointData()->GetArray("value");
-	ret->GetPointData()->AddArray(da);
+	ret->GetPointData()->AddArray(newValues);
 
 	return ret;
 }
