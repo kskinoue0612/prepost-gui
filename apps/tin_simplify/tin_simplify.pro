@@ -1,6 +1,6 @@
 TEMPLATE = app
 TARGET = tin_simplify
-CONFIG += debug_and_release
+CONFIG += console debug_and_release
 
 DEFINES += ANSI_DECLARATORS
 
@@ -10,17 +10,17 @@ include( ../../paths.pri )
 # Internal libraries #
 ######################
 
-#iricGui library
+#iricMisc library
 
 unix {
-	LIBS += -L"../../libs/gui"
+	LIBS += -L"../../libs/misc"
 }
-LIBS += -liricGui
+LIBS += -liricMisc
 
 #iricTriangle library
 
 unix {
-        LIBS += -L"../../libs/triangle"
+	LIBS += -L"../../libs/triangle"
 }
 LIBS += -liricTriangle
 
@@ -34,6 +34,7 @@ LIBS += \
 	-lvtkCommonCore-$${VTK_MAJ_MIN} \
 	-lvtkCommonDataModel-$${VTK_MAJ_MIN} \
 	-lvtkCommonExecutionModel-$${VTK_MAJ_MIN} \
+	-lvtkCommonMisc-$${VTK_MAJ_MIN} \
 	-lvtkFiltersCore-$${VTK_MAJ_MIN} \
 	-lvtkIOCore-$${VTK_MAJ_MIN} \
 	-lvtkIOLegacy-$${VTK_MAJ_MIN}

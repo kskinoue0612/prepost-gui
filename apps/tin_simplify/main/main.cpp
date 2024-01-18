@@ -27,7 +27,12 @@ int main(int argc, char* argv[])
 	writer->SetInputData(contour);
 	writer->Update();
 
-	auto tin2 = TinSimplifier::buildTINFromContour(contour);
+	auto contour2 = TinSimplifier::simplifyContour(contour, 0.5, 0.1);
+	writer->SetFileName("contour2.vtk");
+	writer->SetInputData(contour2);
+	writer->Update();
+
+	auto tin2 = TinSimplifier::buildTINFromContour(contour2);
 	writer->SetFileName("tin2.vtk");
 	writer->SetInputData(tin2);
 	writer->Update();

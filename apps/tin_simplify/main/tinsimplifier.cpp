@@ -1,5 +1,6 @@
 #include "tinsimplifier.h"
 
+#include <misc/mathsupport.h>
 #include <triangle/triangle.h>
 #include <triangle/triangleutil.h>
 
@@ -10,11 +11,64 @@
 #include <vtkPointData.h>
 #include <vtkSmartPointer.h>
 
+#include <QPointF>
+
 #include <cmath>
 #include <set>
 #include <unordered_map>
 
 namespace {
+
+class Line {
+public:
+
+	bool merge(const Line& line, vtkIdType* oldEnd, vtkIdType* newEnd)
+	{
+		if (*ids.rbegin() == *line.ids.begin()) {
+			*oldEnd = *ids.rbegin();
+			*newEnd = *line.ids.rbegin();
+			auto it = line.ids.begin() + 1;
+			while (it != line.ids.end()) {
+				ids.push_back(*it);
+				++ it;
+			}
+			return true;
+		} else if (*ids.rbegin() == *line.ids.rbegin()) {
+			*oldEnd = *ids.rbegin();
+			*newEnd = *line.ids.begin();
+			auto it = line.ids.rbegin() + 1;
+			while (it != line.ids.rend()) {
+				ids.push_back(*it);
+				++ it;
+			}
+			return true;
+		} else if (*ids.begin() == *line.ids.begin()) {
+			*oldEnd = *ids.begin();
+			*newEnd = *line.ids.rbegin();
+			std::reverse(ids.begin(), ids.end());
+			auto it = line.ids.begin() + 1;
+			while (it != line.ids.end()) {
+				ids.push_back(*it);
+				++ it;
+			}
+			return true;
+		} else if (*ids.begin() == *line.ids.rbegin()) {
+			*oldEnd = *ids.begin();
+			*newEnd = *line.ids.begin();
+			std::reverse(ids.begin(), ids.end());
+			auto it = line.ids.rbegin() + 1;
+			while (it != line.ids.rend()) {
+				ids.push_back(*it);
+				++ it;
+			}
+			return true;
+		}
+
+		return false;
+	}
+
+	std::vector<vtkIdType> ids;
+};
 
 struct Edge {
 	Edge(vtkIdType i1, vtkIdType i2) :
@@ -45,6 +99,75 @@ int newPointId(std::unordered_map<int, int>* pointMapId, int *nextPointId, int o
 	return newId;
 }
 
+QPointF getPoint(vtkIdType id, vtkPoints* points)
+{
+	double v[3];
+	points->GetPoint(id, v);
+
+	return QPointF(v[0], v[1]);
+}
+
+bool tryRemovePoint(int index, std::vector<vtkIdType>* lineData, vtkPoints* points, double threDistance, double cosThreshold)
+{
+	auto p1 = getPoint(lineData->at(index - 1), points);
+	auto p2 = getPoint(lineData->at(index + 1), points);
+	auto target = getPoint(lineData->at(index), points);
+
+	QPointF leg;
+
+	double r = iRIC::perpendicularLineOfLeg(p1, p2, target, &leg);
+	if (r < 0 || r > 1) {return false;}
+
+	double dist2 = iRIC::lengthSquared(target - leg);
+	if (dist2 > threDistance * threDistance) {return false;}
+
+	auto v1 = p1 - target;
+	auto v2 = p2 - target;
+
+	qreal dotprod = QPointF::dotProduct(v1, v2);
+	double cosVal = dotprod / (iRIC::length(v1) * iRIC::length(v2));
+	if (cosVal > -1 + cosThreshold) {return false;}
+
+	lineData->erase(lineData->begin() + index);
+	return true;
+}
+
+std::vector<vtkIdType> simplifyLine(const std::vector<vtkIdType>& lineData, vtkPoints* points, double threDistance, double cosThreshold)
+{
+	auto ret = lineData;
+
+	int index = 1;
+	while (index < ret.size() - 1) {
+		bool removed = tryRemovePoint(index, &ret, points, threDistance, cosThreshold);
+
+		if (! removed) {++index;}
+	}
+
+	return ret;
+}
+
+void addToEndIdMap(std::unordered_map<int, std::vector<int> >* endIdMap, int lineId, int endId)
+{
+	auto it = endIdMap->find(endId);
+	if (it == endIdMap->end()) {
+		std::vector<int> empty;
+		auto pair2 = endIdMap->insert({endId, empty});
+		it = pair2.first;
+	}
+	it->second.push_back(lineId);
+}
+
+void removeFromEndIdMap(std::unordered_map<int, std::vector<int> >* endIdMap, int lineId, int endId)
+{
+	auto it = endIdMap->find(endId);
+	if (it == endIdMap->end()) {return;}
+
+	auto it2 = std::find(it->second.begin(), it->second.end(), lineId);
+	if (it2 == it->second.end()) {return;}
+
+	it->second.erase(it2);
+}
+
 } // namespace
 
 vtkPolyData* TinSimplifier::buildContour(vtkPolyData* input, double scale)
@@ -66,7 +189,7 @@ vtkPolyData* TinSimplifier::buildContour(vtkPolyData* input, double scale)
 
 	auto filter = vtkSmartPointer<vtkContourFilter>::New();
 	filter->SetNumberOfContours(vals.size());
-	for (int i = 0; i < vals.size(); ++i) {
+	for (int i = 0; i < static_cast<int>(vals.size()); ++i) {
 		filter->SetValue(i, vals.at(i));
 	}
 	filter->SetInputData(input);
@@ -77,6 +200,74 @@ vtkPolyData* TinSimplifier::buildContour(vtkPolyData* input, double scale)
 	return output;
 }
 
+vtkPolyData* TinSimplifier::simplifyContour(vtkPolyData* input, double distThreshold, double cosThreshold)
+{
+	std::vector<Line> lineVec;
+	std::unordered_map<int, std::vector<int> > endIdMap;
+
+	vtkIdType npts;
+	vtkIdType *pts = nullptr;
+
+	auto lines = input->GetLines();
+	for (lines->InitTraversal(); lines->GetNextCell(npts, pts); ) {
+		Line lineData;
+		for (int j = 0; j < npts; ++j) {
+			lineData.ids.push_back(*(pts + j));
+		}
+
+		bool merged = false;
+		vtkIdType oldEnd, newEnd;
+
+		auto it1 = endIdMap.find(*lineData.ids.begin());
+		if (it1 != endIdMap.end()) {
+			for (auto lineId : it1->second) {
+				auto& l = lineVec[lineId];
+				merged = l.merge(lineData, &oldEnd, &newEnd);
+				if (merged) {
+					removeFromEndIdMap(&endIdMap, lineId, oldEnd);
+					addToEndIdMap(&endIdMap, lineId, newEnd);
+					break;
+				}
+			}
+		}
+		if (merged) {continue;}
+
+		auto it2 = endIdMap.find(*lineData.ids.rbegin());
+		if (it2 != endIdMap.end()) {
+			for (auto lineId : it2->second) {
+				auto& l = lineVec[lineId];
+				merged = l.merge(lineData, &oldEnd, &newEnd);
+				if (merged) {
+					removeFromEndIdMap(&endIdMap, lineId, oldEnd);
+					addToEndIdMap(&endIdMap, lineId, newEnd);
+					break;
+				}
+			}
+		}
+		if (merged) {continue;}
+
+		lineVec.push_back(lineData);
+		auto newLineId = lineVec.size() - 1;
+		addToEndIdMap(&endIdMap, newLineId, *lineData.ids.begin());
+		addToEndIdMap(&endIdMap, newLineId, *lineData.ids.rbegin());
+	}
+	auto ret = vtkPolyData::New();
+
+	ret->SetPoints(input->GetPoints());
+	auto value = input->GetPointData()->GetArray("value");
+	ret->GetPointData()->AddArray(value);
+
+	auto newLines = vtkSmartPointer<vtkCellArray>::New();
+	for (auto& line : lineVec) {
+		auto simplifiedLineData = simplifyLine(line.ids, input->GetPoints(), distThreshold, cosThreshold);
+		newLines->InsertNextCell(simplifiedLineData.size(), simplifiedLineData.data());
+	}
+	ret->SetLines(newLines);
+
+	return ret;
+}
+
+
 vtkPolyData* TinSimplifier::buildTINFromContour(vtkPolyData* pd)
 {
 	triangulateio in, out;
@@ -84,36 +275,30 @@ vtkPolyData* TinSimplifier::buildTINFromContour(vtkPolyData* pd)
 	TriangleUtil::clearTriangulateio(&in);
 	TriangleUtil::clearTriangulateio(&out);
 
-	std::vector<double> pointlist;
-
 	int nextPointId = 0;
 	std::unordered_map<int, int> pointIdMap;
 
 	auto lines = pd->GetLines();
 
-	std::vector<int> tmp_seglist;
-	std::set<Edge> edges;
 	vtkIdType npts;
 	vtkIdType *pts = nullptr;
+
+	std::vector<int> seglist;
+
 	for (lines->InitTraversal(); lines->GetNextCell(npts, pts); ) {
 		for (int j = 0; j < npts - 1; ++j) {
 			vtkIdType id1 = newPointId(&pointIdMap, &nextPointId, *(pts + j));
 			vtkIdType id2 = newPointId(&pointIdMap, &nextPointId, *(pts + j + 1));
-			edges.insert(Edge(id1, id2));
+			seglist.push_back(id1 + 1);
+			seglist.push_back(id2 + 1);
 		}
-	}
-
-	std::vector<int> seglist;
-	seglist.reserve(edges.size() * 2);
-	for (const auto& edge : edges) {
-		seglist.push_back(edge.id1 + 1);
-		seglist.push_back(edge.id2 + 1);
 	}
 
 	in.numberofsegments = seglist.size() / 2;
 	in.segmentlist = seglist.data();
 
 	auto points = pd->GetPoints();
+	std::vector<double> pointlist;
 	pointlist.reserve(pointIdMap.size() * 2);
 
 	std::vector<int> idVec;
@@ -153,7 +338,7 @@ vtkPolyData* TinSimplifier::buildTINFromContour(vtkPolyData* pd)
 
 	ret->SetPoints(newPoints);
 
-	auto tris = vtkCellArray::New();
+	auto tris = vtkSmartPointer<vtkCellArray>::New();
 	for (int i = 0; i < out.numberoftriangles; ++i) {
 		vtkIdType ids[3];
 		ids[0] = *(out.trianglelist + i * 3 + 0) - 1;
