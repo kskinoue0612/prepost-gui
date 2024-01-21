@@ -15,6 +15,13 @@ win32 {
 # Internal libraries #
 ######################
 
+#iricGuibase library
+
+unix {
+        LIBS += -L"../guibase"
+}
+LIBS += -liricGuibase
+
 #iricMisc library
 
 unix {
@@ -48,6 +55,10 @@ LIBS += \
 win32 {
 	LIBS += -L$(SolutionDir)/libdlls/$(Configuration)
 }
+
+# geos
+
+LIBS += -lgeos
 
 # Input
 SOURCES += \

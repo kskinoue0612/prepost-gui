@@ -136,7 +136,13 @@ bool PolyLineUtil::intersects(const std::vector<QPointF>& line1, const std::vect
 			if (q1.y() > tmpBBox.bottom() && q2.y() > tmpBBox.bottom()) {continue;}
 
 			bool intersect = iRIC::intersectionPoint(p1, p2, q1, q2, &intersection, &r, &s);
-			if (intersect) {return true;}
+			if (! intersect) {continue;}
+			if (r < 0) {continue;}
+			if (r > 1) {continue;}
+			if (s < 0) {continue;}
+			if (s > 1) {continue;}
+
+			return true;
 		}
 	}
 

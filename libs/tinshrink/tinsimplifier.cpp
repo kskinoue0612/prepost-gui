@@ -1,5 +1,6 @@
 #include "tinsimplifier.h"
 
+#include <guibase/polyline/polylineutil.h>
 #include <misc/mathsupport.h>
 #include <triangle/triangle.h>
 #include <triangle/triangleutil.h>
@@ -12,6 +13,10 @@
 #include <vtkSmartPointer.h>
 
 #include <QPointF>
+#include <QRectF>
+
+#include <geos/geom/Envelope.h>
+#include <geos/index/quadtree/Quadtree.h>
 
 #include <cmath>
 #include <set>
@@ -68,23 +73,6 @@ public:
 	}
 
 	std::vector<vtkIdType> ids;
-};
-
-struct Edge {
-	Edge(vtkIdType i1, vtkIdType i2) :
-		id1 {std::min(i1, i2)}, id2 {std::max(i1, i2)}
-	{}
-
-	bool operator<(const Edge& e) const {
-		if (id1 != e.id1) {
-			return id1 < e.id1;
-		}
-
-		return id2 < e.id2;
-	}
-
-	vtkIdType id1;
-	vtkIdType id2;
 };
 
 int newPointId(std::unordered_map<int, int>* pointMapId, int *nextPointId, int origPointId)
@@ -366,6 +354,52 @@ vtkPolyData* TinSimplifier::buildTINFromContour(vtkPolyData* pd)
 
 bool TinSimplifier::checkContourCross(vtkPolyData* contour)
 {
+	std::vector<std::vector<QPointF> > lines;
+	auto points = contour->GetPoints();
+	auto lineCells = contour->GetLines();
+
+	vtkIdType npts;
+	vtkIdType *pts = nullptr;
+
+	for (lineCells->InitTraversal(); lineCells->GetNextCell(npts, pts); ) {
+		std::vector<QPointF> l;
+		for (int j = 0; j < npts; ++j) {
+			double v[3];
+			points->GetPoint(*(pts + j), v);
+			l.push_back(QPointF(v[0], v[1]));
+		}
+		lines.push_back(l);
+	}
+
+	geos::index::quadtree::Quadtree qTree;
+	for (long long i = 0; i < static_cast<long long> (lines.size()); ++i) {
+		const auto& l = lines.at(i);
+		auto bbox = PolyLineUtil::boundingRect(l);
+
+		auto env = new geos::geom::Envelope(bbox.left(), bbox.right(), bbox.top(), bbox.bottom());
+		qTree.insert(env, reinterpret_cast<void*>(i));
+	}
+
+	for (int i = 0; i < static_cast<int> (lines.size()); ++i) {
+		const auto& l = lines.at(i);
+		auto bbox = PolyLineUtil::boundingRect(l);
+
+		auto env = new geos::geom::Envelope(bbox.left(), bbox.right(), bbox.top(), bbox.bottom());
+		std::vector<void*> ret;
+		qTree.query(env, ret);
+		delete env;
+
+		for (void* vptr: ret) {
+			int idx = reinterpret_cast<long long> (vptr);
+			if (idx <= i) {continue;}
+
+			const auto& l2 = lines.at(idx);
+			bool intersect = PolyLineUtil::intersects(l, l2);
+
+			if (intersect) {return false;}
+		}
+	}
+
 	return true;
 }
 
