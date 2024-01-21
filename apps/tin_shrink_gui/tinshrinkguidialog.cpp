@@ -43,10 +43,11 @@ void TinShrinkGuiDialog::accept()
 	auto input = ui->inputEdit->filename();
 	auto output = ui->outputEdit->filename();
 	auto interval = ui->intervalSpinBox->value();
-	auto distThre = ui->distThresholdSpinBox->value();
+	auto distThre1 = ui->distThreshold1SpinBox->value();
+	auto distThre2 = ui->distThreshold2SpinBox->value();
 	auto angleThre = ui->angleThresholdSpinBox->value();
 
-	tinshrink_main(iRIC::toStr(input), iRIC::toStr(output), interval, distThre, angleThre);
+	tinshrink_main(iRIC::toStr(input), iRIC::toStr(output), interval, distThre1, distThre2, angleThre);
 
 	QDialog::accept();
 }
@@ -88,22 +89,16 @@ void TinShrinkGuiDialog::check()
 
 	auto input = ui->inputEdit->filename();
 	auto interval = ui->intervalSpinBox->value();
-	auto distThre = ui->distThresholdSpinBox->value();
+	auto distThre1 = ui->distThreshold1SpinBox->value();
+	auto distThre2 = ui->distThreshold2SpinBox->value();
 	auto angleThre = ui->angleThresholdSpinBox->value();
 
 	int inputNumPoints, outputNumPoints;
-	bool crossOk;
 
-	auto tin = tinshrink(iRIC::toStr(input), interval, distThre, angleThre, &inputNumPoints, &crossOk, &outputNumPoints);
+	auto tin = tinshrink(iRIC::toStr(input), interval, distThre1, distThre2, angleThre, &inputNumPoints, &outputNumPoints);
 
 	ui->inputFileNumPointsValueLabel->setText(QString::number(inputNumPoints));
 	ui->outputFileNumPointsValueLabel->setText(QString::number(outputNumPoints));
-
-	if (crossOk) {
-		ui->contourXSValueLabel->setText(tr("OK"));
-	} else {
-		ui->contourXSValueLabel->setText(tr("NG"));
-	}
 
 	if (tin != nullptr) {
 		tin->Delete();

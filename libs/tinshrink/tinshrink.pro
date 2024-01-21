@@ -62,11 +62,15 @@ LIBS += -lgeos
 
 # Input
 SOURCES += \
+    line.cpp \
+    linedatabase.cpp \
     pointsloader.cpp \
     tinshrink_main.cpp \
     tinsimplifier.cpp
 
 HEADERS += \
+    line.h \
+    linedatabase.h \
     pointsloader.h \
     tinshrink_api.h \
     tinshrink_main.h \

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>510</width>
-    <height>367</height>
+    <width>524</width>
+    <height>390</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -78,7 +78,7 @@
       </layout>
      </item>
      <item row="3" column="0">
-      <widget class="QLabel" name="intervalLabel_2">
+      <widget class="QLabel" name="thershold1Label">
        <property name="text">
         <string>Simplification threshold1 (m)</string>
        </property>
@@ -87,7 +87,7 @@
      <item row="3" column="1">
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
-        <widget class="QDoubleSpinBox" name="distThresholdSpinBox">
+        <widget class="QDoubleSpinBox" name="distThreshold1SpinBox">
          <property name="decimals">
           <number>3</number>
          </property>
@@ -95,7 +95,7 @@
           <double>0.001000000000000</double>
          </property>
          <property name="value">
-          <double>1.000000000000000</double>
+          <double>0.200000000000000</double>
          </property>
         </widget>
        </item>
@@ -115,13 +115,43 @@
       </layout>
      </item>
      <item row="4" column="0">
-      <widget class="QLabel" name="intervalLabel_3">
+      <widget class="QLabel" name="threshold2Label">
        <property name="text">
-        <string>Simplification threshold2 (degree)</string>
+        <string>Simplification threshold2 (m)</string>
        </property>
       </widget>
      </item>
      <item row="4" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_7">
+       <item>
+        <widget class="QDoubleSpinBox" name="distThreshold2SpinBox">
+         <property name="decimals">
+          <number>3</number>
+         </property>
+         <property name="minimum">
+          <double>0.001000000000000</double>
+         </property>
+         <property name="value">
+          <double>5.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_7">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item row="5" column="1">
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
         <widget class="QDoubleSpinBox" name="angleThresholdSpinBox">
@@ -153,6 +183,13 @@
         </spacer>
        </item>
       </layout>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="threshold3Label">
+       <property name="text">
+        <string>Simplification threshold3 (degree)</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

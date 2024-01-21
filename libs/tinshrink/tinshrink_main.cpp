@@ -12,12 +12,11 @@
 #include <iostream>
 #include <string>
 
-int tinshrink_main(const std::string& input, const std::string& output, double interval, double dist_threshold, double angle_threshold)
+int tinshrink_main(const std::string& input, const std::string& output, double interval, double dist_threshold1, double dist_threshold2, double angle_threshold)
 {
-	bool crossOk;
 	int inputNumPoints, outputNumPoints;
 
-	auto tin = tinshrink(input, interval, dist_threshold, angle_threshold, &inputNumPoints, &crossOk, &outputNumPoints);
+	auto tin = tinshrink(input, interval, dist_threshold1, dist_threshold2, angle_threshold, &inputNumPoints, &outputNumPoints);
 	if (tin == nullptr) {return -1;}
 
 	auto writer = vtkSmartPointer<vtkSTLWriter>::New();
@@ -29,7 +28,7 @@ int tinshrink_main(const std::string& input, const std::string& output, double i
 	return 0;
 }
 
-vtkPolyData *tinshrink(const std::string& input, double interval, double dist_threshold, double angle_threshold, int* inputNumPoints, bool *crossOk, int* outputNumPoints)
+vtkPolyData *tinshrink(const std::string& input, double interval, double dist_threshold1, double dist_threshold2, double angle_threshold, int* inputNumPoints, int* outputNumPoints)
 {
 	auto reader = vtkSmartPointer<vtkSTLReader>::New();
 	reader->SetFileName(input.c_str());
@@ -45,18 +44,15 @@ vtkPolyData *tinshrink(const std::string& input, double interval, double dist_th
 	for (vtkIdType i = 0; i < points->GetNumberOfPoints(); ++i) {
 		points->GetPoint(i, v);
 		values->InsertNextValue(v[2]);
+		v[2] = 0;
+		points->SetPoint(i, v);
 	}
 	tin1->GetPointData()->AddArray(values);
 
 	auto contour = TinSimplifier::buildContour(tin1, interval);
-	auto contour2 = TinSimplifier::simplifyContour(contour, dist_threshold, angle_threshold);
+	auto contour2 = TinSimplifier::simplifyContour(contour, interval, dist_threshold1, dist_threshold2, angle_threshold);
 	contour->Delete();
 
-	*crossOk = TinSimplifier::checkContourCross(contour2);
-	if (! *crossOk) {
-		*outputNumPoints = 0;
-		return nullptr;
-	}
 
 	auto tin2 = TinSimplifier::buildTINFromContour(contour2);
 	contour2->Delete();

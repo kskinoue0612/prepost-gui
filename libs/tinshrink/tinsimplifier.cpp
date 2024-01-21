@@ -1,3 +1,5 @@
+#include "line.h"
+#include "linedatabase.h"
 #include "tinsimplifier.h"
 
 #include <guibase/polyline/polylineutil.h>
@@ -24,57 +26,6 @@
 
 namespace {
 
-class Line {
-public:
-
-	bool merge(const Line& line, vtkIdType* oldEnd, vtkIdType* newEnd)
-	{
-		if (*ids.rbegin() == *line.ids.begin()) {
-			*oldEnd = *ids.rbegin();
-			*newEnd = *line.ids.rbegin();
-			auto it = line.ids.begin() + 1;
-			while (it != line.ids.end()) {
-				ids.push_back(*it);
-				++ it;
-			}
-			return true;
-		} else if (*ids.rbegin() == *line.ids.rbegin()) {
-			*oldEnd = *ids.rbegin();
-			*newEnd = *line.ids.begin();
-			auto it = line.ids.rbegin() + 1;
-			while (it != line.ids.rend()) {
-				ids.push_back(*it);
-				++ it;
-			}
-			return true;
-		} else if (*ids.begin() == *line.ids.begin()) {
-			*oldEnd = *ids.begin();
-			*newEnd = *line.ids.rbegin();
-			std::reverse(ids.begin(), ids.end());
-			auto it = line.ids.begin() + 1;
-			while (it != line.ids.end()) {
-				ids.push_back(*it);
-				++ it;
-			}
-			return true;
-		} else if (*ids.begin() == *line.ids.rbegin()) {
-			*oldEnd = *ids.begin();
-			*newEnd = *line.ids.begin();
-			std::reverse(ids.begin(), ids.end());
-			auto it = line.ids.rbegin() + 1;
-			while (it != line.ids.rend()) {
-				ids.push_back(*it);
-				++ it;
-			}
-			return true;
-		}
-
-		return false;
-	}
-
-	std::vector<vtkIdType> ids;
-};
-
 int newPointId(std::unordered_map<int, int>* pointMapId, int *nextPointId, int origPointId)
 {
 	auto it = pointMapId->find(origPointId);
@@ -95,11 +46,16 @@ QPointF getPoint(vtkIdType id, vtkPoints* points)
 	return QPointF(v[0], v[1]);
 }
 
-bool tryRemovePoint(int index, std::vector<vtkIdType>* lineData, vtkPoints* points, double threDistance, double cosThreshold)
+bool tryRemovePoint(int index, std::vector<vtkIdType>* lineData, vtkPoints* points, double threDistance1, double threDistance2, double cosThreshold, LineDatabase* lineDb)
 {
 	auto p1 = getPoint(lineData->at(index - 1), points);
 	auto p2 = getPoint(lineData->at(index + 1), points);
 	auto target = getPoint(lineData->at(index), points);
+
+	auto threDistance2Squared = threDistance2 * threDistance2;
+
+	if (iRIC::lengthSquared(p1 - target) > threDistance2Squared) {return false;}
+	if (iRIC::lengthSquared(p2 - target) > threDistance2Squared) {return false;}
 
 	QPointF leg;
 
@@ -107,7 +63,7 @@ bool tryRemovePoint(int index, std::vector<vtkIdType>* lineData, vtkPoints* poin
 	if (r < 0 || r > 1) {return false;}
 
 	double dist2 = iRIC::lengthSquared(target - leg);
-	if (dist2 > threDistance * threDistance) {return false;}
+	if (dist2 > threDistance1 * threDistance1) {return false;}
 
 	auto v1 = p1 - target;
 	auto v2 = p2 - target;
@@ -116,17 +72,19 @@ bool tryRemovePoint(int index, std::vector<vtkIdType>* lineData, vtkPoints* poin
 	double cosVal = dotprod / (iRIC::length(v1) * iRIC::length(v2));
 	if (cosVal > -1 + cosThreshold) {return false;}
 
+	if (lineDb->intersect(p1, p2)) {return false;}
+
 	lineData->erase(lineData->begin() + index);
 	return true;
 }
 
-std::vector<vtkIdType> simplifyLine(const std::vector<vtkIdType>& lineData, vtkPoints* points, double threDistance, double cosThreshold)
+std::vector<vtkIdType> simplifyLine(const std::vector<vtkIdType>& lineData, vtkPoints* points, double threDistance1, double threDistance2, double cosThreshold, LineDatabase* lineDb)
 {
 	auto ret = lineData;
 
 	int index = 1;
-	while (index < ret.size() - 1) {
-		bool removed = tryRemovePoint(index, &ret, points, threDistance, cosThreshold);
+	while (index < static_cast<int> (ret.size()) - 1) {
+		bool removed = tryRemovePoint(index, &ret, points, threDistance1, threDistance2, cosThreshold, lineDb);
 
 		if (! removed) {++index;}
 	}
@@ -188,12 +146,11 @@ vtkPolyData* TinSimplifier::buildContour(vtkPolyData* input, double scale)
 	return output;
 }
 
-vtkPolyData* TinSimplifier::simplifyContour(vtkPolyData* input, double distThreshold, double angleThreshold)
+vtkPolyData* TinSimplifier::simplifyContour(vtkPolyData* input, double interval, double distThreshold1, double distThreshold2, double angleThreshold)
 {
 	double cos = std::cos(angleThreshold / 180.0 * 3.1415926535);
 	double cosThreshold = cos + 1;
 	std::vector<Line> lineVec;
-	std::unordered_map<int, std::vector<int> > endIdMap;
 
 	vtkIdType npts;
 	vtkIdType *pts = nullptr;
@@ -204,55 +161,91 @@ vtkPolyData* TinSimplifier::simplifyContour(vtkPolyData* input, double distThres
 		for (int j = 0; j < npts; ++j) {
 			lineData.ids.push_back(*(pts + j));
 		}
-
-		bool merged = false;
-		vtkIdType oldEnd, newEnd;
-
-		auto it1 = endIdMap.find(*lineData.ids.begin());
-		if (it1 != endIdMap.end()) {
-			for (auto lineId : it1->second) {
-				auto& l = lineVec[lineId];
-				merged = l.merge(lineData, &oldEnd, &newEnd);
-				if (merged) {
-					removeFromEndIdMap(&endIdMap, lineId, oldEnd);
-					addToEndIdMap(&endIdMap, lineId, newEnd);
-					break;
-				}
-			}
-		}
-		if (merged) {continue;}
-
-		auto it2 = endIdMap.find(*lineData.ids.rbegin());
-		if (it2 != endIdMap.end()) {
-			for (auto lineId : it2->second) {
-				auto& l = lineVec[lineId];
-				merged = l.merge(lineData, &oldEnd, &newEnd);
-				if (merged) {
-					removeFromEndIdMap(&endIdMap, lineId, oldEnd);
-					addToEndIdMap(&endIdMap, lineId, newEnd);
-					break;
-				}
-			}
-		}
-		if (merged) {continue;}
-
 		lineVec.push_back(lineData);
-		auto newLineId = lineVec.size() - 1;
-		addToEndIdMap(&endIdMap, newLineId, *lineData.ids.begin());
-		addToEndIdMap(&endIdMap, newLineId, *lineData.ids.rbegin());
 	}
-	auto ret = vtkPolyData::New();
 
-	ret->SetPoints(input->GetPoints());
+	std::unordered_map<int, std::vector<int> > endIdMap;
+	while (true) {
+		int mergedCount = 0;
+		std::vector<Line> newLineVec;
+		endIdMap.clear();
+
+		for (const auto& lineData : lineVec) {
+			bool merged = false;
+			vtkIdType oldEnd, newEnd;
+
+			auto it1 = endIdMap.find(*lineData.ids.begin());
+			if (it1 != endIdMap.end()) {
+				for (auto lineId : it1->second) {
+					auto& l = newLineVec[lineId];
+					merged = l.merge(lineData, &oldEnd, &newEnd);
+					if (merged) {
+						removeFromEndIdMap(&endIdMap, lineId, oldEnd);
+						addToEndIdMap(&endIdMap, lineId, newEnd);
+						break;
+					}
+				}
+			}
+			if (merged) {
+				++ mergedCount;
+				continue;
+			}
+
+			auto it2 = endIdMap.find(*lineData.ids.rbegin());
+			if (it2 != endIdMap.end()) {
+				for (auto lineId : it2->second) {
+					auto& l = newLineVec[lineId];
+					merged = l.merge(lineData, &oldEnd, &newEnd);
+					if (merged) {
+						removeFromEndIdMap(&endIdMap, lineId, oldEnd);
+						addToEndIdMap(&endIdMap, lineId, newEnd);
+						break;
+					}
+				}
+			}
+			if (merged) {
+				++ mergedCount;
+				continue;
+			}
+
+			newLineVec.push_back(lineData);
+			auto newLineId = newLineVec.size() - 1;
+			addToEndIdMap(&endIdMap, newLineId, *lineData.ids.begin());
+			addToEndIdMap(&endIdMap, newLineId, *lineData.ids.rbegin());
+		}
+		lineVec = newLineVec;
+
+		if (mergedCount == 0) {break;}
+	}
+
 	auto value = input->GetPointData()->GetArray("value");
-	ret->GetPointData()->AddArray(value);
+	auto points = input->GetPoints();
 
 	auto newLines = vtkSmartPointer<vtkCellArray>::New();
-	for (auto& line : lineVec) {
-		auto simplifiedLineData = simplifyLine(line.ids, input->GetPoints(), distThreshold, cosThreshold);
+	for (int i = 0; i < static_cast<int> (lineVec.size()); ++i) {
+		auto& line = lineVec[i];
+		double v = value->GetTuple1(line.ids[0]);
+
+		std::vector<Line> checkTargetLines;
+		for (int j = 0; j < static_cast<int> (lineVec.size()); ++j) {
+			if (j == i) {continue;}
+
+			const auto& line2 = lineVec[j];
+			double v2 = value->GetTuple1(line2.ids[0]);
+			if (std::abs(v2 - v) < interval * 0.5) {continue;}
+
+			checkTargetLines.push_back(line2);
+		}
+
+		LineDatabase db(input->GetPoints(), checkTargetLines);
+		auto simplifiedLineData = simplifyLine(line.ids, points, distThreshold1, distThreshold2, cosThreshold, &db);
 		newLines->InsertNextCell(simplifiedLineData.size(), simplifiedLineData.data());
 	}
+
+	auto ret = vtkPolyData::New();
+	ret->SetPoints(points);
 	ret->SetLines(newLines);
+	ret->GetPointData()->AddArray(value);
 
 	return ret;
 }
@@ -350,57 +343,6 @@ vtkPolyData* TinSimplifier::buildTINFromContour(vtkPolyData* pd)
 	ret->GetPointData()->AddArray(newValues);
 
 	return ret;
-}
-
-bool TinSimplifier::checkContourCross(vtkPolyData* contour)
-{
-	std::vector<std::vector<QPointF> > lines;
-	auto points = contour->GetPoints();
-	auto lineCells = contour->GetLines();
-
-	vtkIdType npts;
-	vtkIdType *pts = nullptr;
-
-	for (lineCells->InitTraversal(); lineCells->GetNextCell(npts, pts); ) {
-		std::vector<QPointF> l;
-		for (int j = 0; j < npts; ++j) {
-			double v[3];
-			points->GetPoint(*(pts + j), v);
-			l.push_back(QPointF(v[0], v[1]));
-		}
-		lines.push_back(l);
-	}
-
-	geos::index::quadtree::Quadtree qTree;
-	for (long long i = 0; i < static_cast<long long> (lines.size()); ++i) {
-		const auto& l = lines.at(i);
-		auto bbox = PolyLineUtil::boundingRect(l);
-
-		auto env = new geos::geom::Envelope(bbox.left(), bbox.right(), bbox.top(), bbox.bottom());
-		qTree.insert(env, reinterpret_cast<void*>(i));
-	}
-
-	for (int i = 0; i < static_cast<int> (lines.size()); ++i) {
-		const auto& l = lines.at(i);
-		auto bbox = PolyLineUtil::boundingRect(l);
-
-		auto env = new geos::geom::Envelope(bbox.left(), bbox.right(), bbox.top(), bbox.bottom());
-		std::vector<void*> ret;
-		qTree.query(env, ret);
-		delete env;
-
-		for (void* vptr: ret) {
-			int idx = reinterpret_cast<long long> (vptr);
-			if (idx <= i) {continue;}
-
-			const auto& l2 = lines.at(idx);
-			bool intersect = PolyLineUtil::intersects(l, l2);
-
-			if (intersect) {return false;}
-		}
-	}
-
-	return true;
 }
 
 TinSimplifier::TinSimplifier()
