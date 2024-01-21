@@ -200,8 +200,10 @@ vtkPolyData* TinSimplifier::buildContour(vtkPolyData* input, double scale)
 	return output;
 }
 
-vtkPolyData* TinSimplifier::simplifyContour(vtkPolyData* input, double distThreshold, double cosThreshold)
+vtkPolyData* TinSimplifier::simplifyContour(vtkPolyData* input, double distThreshold, double angleThreshold)
 {
+	double cos = std::cos(angleThreshold / 180.0 * 3.1415926535);
+	double cosThreshold = cos + 1;
 	std::vector<Line> lineVec;
 	std::unordered_map<int, std::vector<int> > endIdMap;
 

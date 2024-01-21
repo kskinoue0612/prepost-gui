@@ -25,4 +25,5 @@ SUBDIRS = \
 	pre \
 	gui \
 	migui \
-	iricpython
+	iricpython \
+	tinshrink

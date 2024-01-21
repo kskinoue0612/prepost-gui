@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
 	writer->SetInputData(contour);
 	writer->Update();
 
-	auto contour2 = TinSimplifier::simplifyContour(contour, 0.5, 0.1);
+	auto contour2 = TinSimplifier::simplifyContour(contour, 3, 0.2);
 	writer->SetFileName("contour2.vtk");
 	writer->SetInputData(contour2);
 	writer->Update();
