@@ -16,6 +16,7 @@ public:
 	static std::vector<QPointF> buildSplinePoints(vtkPoints* points, int divNum);
 	static double length(const std::vector<QPointF>& polyLine);
 	static QRectF boundingRect(const std::vector<QPointF>& polyLine);
+	static bool intersects(const std::vector<QPointF>& line1, const std::vector<QPointF>& line2);
 
 private:
 	PolyLineUtil();

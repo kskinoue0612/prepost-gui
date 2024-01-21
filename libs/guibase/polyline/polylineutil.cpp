@@ -8,6 +8,8 @@
 #include <QPointF>
 #include <QRectF>
 
+#include <misc/mathsupport.h>
+
 namespace {
 
 const int SUBDIV_NUM = 3;
@@ -100,6 +102,45 @@ QRectF PolyLineUtil::boundingRect(const std::vector<QPointF>& polyLine)
 		if (i == 0 || y > ymax) {ymax = y;}
 	}
 	return QRectF(xmin, ymin, xmax - xmin, ymax - ymin);
+}
+
+bool PolyLineUtil::intersects(const std::vector<QPointF>& line1, const std::vector<QPointF>& line2)
+{
+	QRectF bbox2 = boundingRect(line2);
+
+	QPointF intersection;
+	double r, s;
+
+	for (int i = 0; i < static_cast<int> (line1.size()) - 1; ++i) {
+		QPointF p1 = line1.at(i);
+		QPointF p2 = line1.at(i + 1);
+
+		if (p1.x() < bbox2.left() && p2.x() < bbox2.left()) {continue;}
+		if (p1.x() > bbox2.right() && p2.x() > bbox2.right()) {continue;}
+		if (p1.y() < bbox2.top() && p2.y() < bbox2.top()) {continue;}
+		if (p1.y() > bbox2.bottom() && p2.y() > bbox2.bottom()) {continue;}
+
+		std::vector<QPointF> tmpLine;
+		tmpLine.push_back(p1);
+		tmpLine.push_back(p2);
+		QRectF tmpBBox = boundingRect(tmpLine);
+
+
+		for (int j = 0; j < static_cast<int> (line2.size()) - 1; ++j) {
+			QPointF q1 = line2.at(j);
+			QPointF q2 = line2.at(j + 1);
+
+			if (q1.x() < tmpBBox.left() && q2.x() < tmpBBox.left()) {continue;}
+			if (q1.x() > tmpBBox.right() && q2.x() > tmpBBox.right()) {continue;}
+			if (q1.y() < tmpBBox.top() && q2.y() < tmpBBox.top()) {continue;}
+			if (q1.y() > tmpBBox.bottom() && q2.y() > tmpBBox.bottom()) {continue;}
+
+			bool intersect = iRIC::intersectionPoint(p1, p2, q1, q2, &intersection, &r, &s);
+			if (intersect) {return true;}
+		}
+	}
+
+	return false;
 }
 
 PolyLineUtil::PolyLineUtil()
