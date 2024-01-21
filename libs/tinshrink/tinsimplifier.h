@@ -9,6 +9,7 @@ public:
 	static vtkPolyData* buildContour(vtkPolyData* input, double scale);
 	static vtkPolyData* simplifyContour(vtkPolyData* input, double distThreshold, double angleThreshold);
 	static vtkPolyData* buildTINFromContour(vtkPolyData* contour);
+	static bool checkContourCross(vtkPolyData* contour);
 
 private:
 	TinSimplifier();

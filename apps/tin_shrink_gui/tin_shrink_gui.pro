@@ -37,6 +37,11 @@ LIBS += -liricTinShrink
 # External libraries #
 ######################
 
+# VTK
+
+LIBS += \
+        -lvtkCommonCore-$${VTK_MAJ_MIN}
+
 win32 {
 	LIBS += -L$(SolutionDir)/libdlls/$(Configuration)
 }

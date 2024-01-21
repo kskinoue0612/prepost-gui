@@ -269,7 +269,6 @@ vtkPolyData* TinSimplifier::simplifyContour(vtkPolyData* input, double distThres
 	return ret;
 }
 
-
 vtkPolyData* TinSimplifier::buildTINFromContour(vtkPolyData* pd)
 {
 	triangulateio in, out;
@@ -363,6 +362,11 @@ vtkPolyData* TinSimplifier::buildTINFromContour(vtkPolyData* pd)
 	ret->GetPointData()->AddArray(newValues);
 
 	return ret;
+}
+
+bool TinSimplifier::checkContourCross(vtkPolyData* contour)
+{
+	return true;
 }
 
 TinSimplifier::TinSimplifier()
