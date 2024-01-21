@@ -10,4 +10,5 @@ SUBDIRS = \
 	iricgui \
 	iricmigui \
 	rivmaker \
-	tin_simplify
+	tin_shrink_cui \
+	tin_shrink_gui

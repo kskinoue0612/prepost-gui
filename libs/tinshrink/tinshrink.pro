@@ -1,11 +1,15 @@
 TARGET = iricTinShrink
 TEMPLATE = lib
-CONFIG += debug_and_release
 
 DEFINES += ANSI_DECLARATORS
 DEFINES += TINSHRINK_LIBRARY
 
 include( ../../paths.pri )
+
+win32 {
+        DESTDIR = $(SolutionDir)/libdlls/$(Configuration)
+        LIBS += -L$(SolutionDir)/libdlls/$(Configuration)
+}
 
 ######################
 # Internal libraries #

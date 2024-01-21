@@ -1,4 +1,5 @@
 #include "pointsloader.h"
+#include "tinshrink_main.h"
 #include "tinsimplifier.h"
 
 #include <vtkPolyData.h>
