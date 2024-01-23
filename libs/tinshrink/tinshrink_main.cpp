@@ -5,6 +5,7 @@
 #include <vtkDoubleArray.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
+#include <vtkPolyDataWriter.h>
 #include <vtkSmartPointer.h>
 #include <vtkSTLReader.h>
 #include <vtkSTLWriter.h>
@@ -30,6 +31,8 @@ int tinshrink_main(const std::string& input, const std::string& output, double i
 
 vtkPolyData *tinshrink(const std::string& input, double interval, double dist_threshold1, double dist_threshold2, double angle_threshold, int* inputNumPoints, int* outputNumPoints)
 {
+	auto writer = vtkSmartPointer<vtkPolyDataWriter>::New();
+
 	auto reader = vtkSmartPointer<vtkSTLReader>::New();
 	reader->SetFileName(input.c_str());
 	reader->Update();
@@ -49,13 +52,29 @@ vtkPolyData *tinshrink(const std::string& input, double interval, double dist_th
 	}
 	tin1->GetPointData()->AddArray(values);
 
+	writer->SetInputData(tin1);
+	writer->SetFileName("tin1.vtk");
+	writer->Update();
+
 	auto contour = TinSimplifier::buildContour(tin1, interval);
+
+	writer->SetInputData(contour);
+	writer->SetFileName("contour1.vtk");
+	writer->Update();
+
 	auto contour2 = TinSimplifier::simplifyContour(contour, interval, dist_threshold1, dist_threshold2, angle_threshold);
 	contour->Delete();
 
+	writer->SetInputData(contour2);
+	writer->SetFileName("contour2.vtk");
+	writer->Update();
 
 	auto tin2 = TinSimplifier::buildTINFromContour(contour2);
 	contour2->Delete();
+
+	writer->SetInputData(tin2);
+	writer->SetFileName("tin2.vtk");
+	writer->Update();
 
 	auto values2 = tin2->GetPointData()->GetArray("value");
 	points = tin2->GetPoints();
