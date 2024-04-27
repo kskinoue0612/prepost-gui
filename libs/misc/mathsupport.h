@@ -21,6 +21,8 @@ namespace iRIC
 	qreal MISCDLL_EXPORT angle(const QPointF& v1, const QPointF& v2);
 	/// The distance between two points
 	qreal MISCDLL_EXPORT distance(const QPointF& p1, const QPointF& p2);
+	/// The triangle area
+	qreal MISCDLL_EXPORT triangleArea(const QPointF& p1, const QPointF& p2, const QPointF& p3);
 	/// Normalize the vector
 	QPointF MISCDLL_EXPORT normalize(const QPointF& v);
 	/// Rotate the two-dimensional vector 90 degrees against anti-clockwise direction

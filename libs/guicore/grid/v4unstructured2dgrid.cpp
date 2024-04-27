@@ -2,6 +2,7 @@
 #include "v4unstructured2dgrid.h"
 
 #include <guibase/vtktool/vtkpointsetregionandcellsizefilter.h>
+#include <misc/mathsupport.h>
 #include <misc/rectregion.h>
 #include <misc/stringtool.h>
 
@@ -77,3 +78,32 @@ void v4Unstructured2dGrid::updateFilteredData(double xMin, double xMax, double y
 	setFilteredIndexData(filteredIndexGrid);
 	indexData->Delete();
 }
+
+vtkDoubleArray* v4Unstructured2dGrid::buildCellAreaData() const
+{
+	auto area = vtkDoubleArray::New();
+	area->Allocate(cellCount());
+
+	auto data = vtkData()->data();
+	for (vtkIdType cellId = 0; cellId < cellCount(); ++cellId) {
+		auto cell = data->GetCell(cellId);
+		if (cell->GetCellType() == VTK_TRIANGLE) {
+			auto tri = vtkTriangle::SafeDownCast(cell);
+			area->InsertNextValue(tri->ComputeArea());
+		} else if (cell->GetCellType() == VTK_QUAD) {
+			auto p1 = point2d(cell->GetPointId(0));
+			auto p2 = point2d(cell->GetPointId(1));
+			auto p3 = point2d(cell->GetPointId(2));
+			auto p4 = point2d(cell->GetPointId(3));
+
+			auto a1 = iRIC::triangleArea(p1, p2, p3);
+			auto a2 = iRIC::triangleArea(p2, p3, p4);
+			area->InsertNextValue(a1 + a2);
+		} else {
+			area->InsertNextValue(0);
+		}
+	}
+
+	return area;
+}
+

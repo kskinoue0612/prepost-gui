@@ -13,6 +13,9 @@ public:
 	v4Unstructured2dGrid();
 
 	void updateFilteredData(double xMin, double xMax, double yMin, double yMax) override;
+
+private:
+	vtkDoubleArray* buildCellAreaData() const override;
 };
 
 #endif // V4UNSTRUCTURED2DGRID_H

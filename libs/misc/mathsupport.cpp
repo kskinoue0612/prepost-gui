@@ -54,6 +54,12 @@ namespace iRIC
 		return length(v);
 	}
 
+
+	qreal triangleArea(const QPointF& p1, const QPointF& p2, const QPointF& p3)
+	{
+		return 0.5 * std::abs(outerProduct(p2 - p1, p3 - p1));
+	}
+
 	QPointF normalize(const QPointF& v)
 	{
 		return v / length(v);

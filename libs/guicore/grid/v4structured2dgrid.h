@@ -69,6 +69,8 @@ public:
 	v4GridStructureCheckerI* structureChecker() const override;
 
 private:
+	vtkDoubleArray* buildCellAreaData() const override;
+
 	class Impl;
 	std::unique_ptr<Impl> impl;
 

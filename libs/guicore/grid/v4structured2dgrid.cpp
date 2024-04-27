@@ -3,6 +3,7 @@
 #include "private/v4structured2dgrid_impl.h"
 
 #include <guibase/vtktool/vtkpointsetregionandcellsizefilter.h>
+#include <misc/mathsupport.h>
 #include <misc/rectregion.h>
 #include <misc/stringtool.h>
 
@@ -393,4 +394,25 @@ void v4Structured2dGrid::updateFilteredData(double xMin, double xMax, double yMi
 v4GridStructureCheckerI* v4Structured2dGrid::structureChecker() const
 {
 	return impl->m_structureChecker;
+}
+
+vtkDoubleArray* v4Structured2dGrid::buildCellAreaData() const
+{
+	auto area = vtkDoubleArray::New();
+	area->Allocate(cellCount());
+
+	for (vtkIdType j = 0; j < dimensionJ() - 1; ++j) {
+		for (vtkIdType i = 0; i < dimensionI() - 1; ++i) {
+			auto p1 = point2d(i, j);
+			auto p2 = point2d(i + 1, j);
+			auto p3 = point2d(i, j + 1);
+			auto p4 = point2d(i + 1, j + 1);
+
+			auto a1 = iRIC::triangleArea(p1, p2, p3);
+			auto a2 = iRIC::triangleArea(p2, p3, p4);
+			area->InsertNextValue(a1 + a2);
+		}
+	}
+
+	return area;
 }

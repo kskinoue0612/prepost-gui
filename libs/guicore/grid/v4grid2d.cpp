@@ -59,6 +59,15 @@ void v4Grid2d::setMasked(bool masked)
 	impl->m_isMasked = masked;
 }
 
+void v4Grid2d::buildCellArea(const std::string& name)
+{
+	auto area = buildCellAreaData();
+	area->SetName(name.c_str());
+
+	vtkData()->data()->GetCellData()->AddArray(area);
+	area->Delete();
+}
+
 void v4Grid2d::setFilteredData(vtkPointSet* data)
 {
 	if (impl->m_vtkFilteredData != nullptr) {
@@ -77,4 +86,14 @@ void v4Grid2d::setFilteredIndexData(vtkPointSet* data)
 
 	impl->m_vtkFilteredIndexData = data;
 	data->Register(nullptr);
+}
+
+vtkDoubleArray* v4Grid2d::buildCellAreaData() const
+{
+	auto area = vtkDoubleArray::New();
+	area->Allocate(cellCount());
+	for (int i = 0; i < cellCount(); ++i) {
+		area->InsertNextValue(0);
+	}
+	return area;
 }

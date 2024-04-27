@@ -5,6 +5,8 @@
 
 #include "v4grid.h"
 
+class vtkDoubleArray;
+
 class GUICOREDLL_EXPORT v4Grid2d : public v4Grid
 {
 public:
@@ -20,6 +22,8 @@ public:
 	bool isMasked() const;
 	void setMasked(bool masked);
 
+	void buildCellArea(const std::string& name);
+
 	virtual void updateFilteredData(double xMin, double xMax, double yMin, double yMax) = 0;
 
 protected:
@@ -27,6 +31,8 @@ protected:
 	void setFilteredIndexData(vtkPointSet* data);
 
 private:
+	virtual vtkDoubleArray* buildCellAreaData() const;
+
 	class Impl;
 	std::unique_ptr<Impl> impl;
 };

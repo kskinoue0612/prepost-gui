@@ -17,6 +17,8 @@ class v4SolutionGrid;
 class GUICOREDLL_EXPORT v4PostZoneDataContainer : public PostDataContainer
 {
 public:
+	static const std::string CELL_AREA;
+
 	v4PostZoneDataContainer(const std::string& zoneName, SolverDefinitionGridType* gridType, PostSolutionInfo* parent);
 	~v4PostZoneDataContainer();
 

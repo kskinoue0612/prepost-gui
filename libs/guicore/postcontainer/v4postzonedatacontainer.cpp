@@ -1,4 +1,5 @@
 #include "../grid/v4grid.h"
+#include "../grid/v4grid2d.h"
 #include "../pre/grid/v4inputgrid.h"
 #include "../pre/grid/v4inputgridio.h"
 #include "v4solutiongrid.h"
@@ -10,6 +11,8 @@
 #include <h5cgnsbase.h>
 #include <h5cgnszone.h>
 #include <iriclib_errorcodes.h>
+
+const std::string v4PostZoneDataContainer::CELL_AREA = "CellArea";
 
 v4PostZoneDataContainer::v4PostZoneDataContainer(const std::string& zoneName, SolverDefinitionGridType* gridType, PostSolutionInfo* parent) :
 	PostDataContainer {parent},
@@ -107,6 +110,14 @@ int v4PostZoneDataContainer::loadFromCgnsFile(iRICLib::H5CgnsZone* zone, PreProc
 	} else {
 		v4SolutionGridIO::loadGrid(impl->m_gridData, zone, offset(), &ier);
 		if (ier != IRIC_NO_ERROR) {return ier;}
+	}
+
+	if (impl->m_gridData != nullptr) {
+		auto g = impl->m_gridData->grid();
+		auto g2d = dynamic_cast<v4Grid2d*> (g);
+		if (g2d != nullptr) {
+			g2d->buildCellArea(CELL_AREA);
+		}
 	}
 
 	double dim = zone->base()->dimension();
