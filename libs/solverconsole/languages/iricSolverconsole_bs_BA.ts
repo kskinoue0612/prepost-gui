@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
 <TS version="2.1" language="bs_BA">
 <context>
     <name>SolverConsoleWindow</name>
@@ -67,7 +69,7 @@
     </message>
     <message>
         <source>The solver finished calculation.</source>
-        <translation>Rešivač je završio proračun.</translation>
+        <translation type="vanished">Rešivač je završio proračun.</translation>
     </message>
     <message>
         <source>The solver finished abnormally.</source>
@@ -107,11 +109,15 @@
     </message>
     <message>
         <source>information</source>
-        <translation>informacije</translation>
+        <translation type="vanished">informacije</translation>
     </message>
     <message>
         <source>Project successfully saved to %1.</source>
-        <translation>Projekat uspješno sačuvan u %1.</translation>
+        <translation type="vanished">Projekat uspješno sačuvan u %1.</translation>
+    </message>
+    <message>
+        <source>The solver finished calculation. Do you want to save this project?</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -160,8 +166,8 @@
         <translation type="vanished">&lt;html&gt;&lt;head/&gt;&lt;body&gt; &lt;p&gt;Molimo provjerite:&lt;/p&gt; &lt;ul&gt; &lt;li&gt;Ako rezultat izračuna već postoji, briše se.&lt;/li&gt; &lt;li&gt;Uvjet proračuna i ulazna mreža. koji možete vidjeti u prozoru za prethodnu obradu je upisan u Case1.cgn.&lt;/li&gt; &lt;li&gt;Rešavač će pročitati podatke iz Case1.cgn i početi raditi.&lt;/li&gt; &lt;/ul&gt; &lt;p&gt;Jeste li vi vi. jesi li u redu?&lt;/p&gt; &lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Please make sure:&lt;/p&gt;&lt;ul style="margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px;"&gt;&lt;li style="margin-top:8px;"&gt;If calculation result already exists, it will be deleted.&lt;/li&gt;&lt;li style="margin-top:8px"&gt;The project will be saved.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Are you sure it is OK?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Uvjerite se:&lt;/p&gt;&lt;ul style="margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; "&gt;&lt;li style="margin-top:8px;"&gt;Ako rezultat proračuna već postoji, biće obrisan.&lt;/li&gt;&lt;li style="margin-top:8px"&gt;Projekat će biti sačuvan.&lt;/li&gt;&lt;li style="margin-top:8px;"&gt; li&gt;&lt;/ul&gt;&lt;p&gt;Jeste li sigurni da je u redu?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Please make sure:&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px;&quot;&gt;&lt;li style=&quot;margin-top:8px;&quot;&gt;If calculation result already exists, it will be deleted.&lt;/li&gt;&lt;li style=&quot;margin-top:8px&quot;&gt;The project will be saved.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Are you sure it is OK?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Uvjerite se:&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; &quot;&gt;&lt;li style=&quot;margin-top:8px;&quot;&gt;Ako rezultat proračuna već postoji, biće obrisan.&lt;/li&gt;&lt;li style=&quot;margin-top:8px&quot;&gt;Projekat će biti sačuvan.&lt;/li&gt;&lt;li style=&quot;margin-top:8px;&quot;&gt; li&gt;&lt;/ul&gt;&lt;p&gt;Jeste li sigurni da je u redu?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 </TS>
