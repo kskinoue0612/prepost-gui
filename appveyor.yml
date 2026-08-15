@@ -255,6 +255,44 @@ build_script:
   - msbuild /nologo /verbosity:minimal /maxCpuCount /p:Configuration=%Configuration% src.sln
 
 after_build:
+  # Sign this repo's own build outputs (before copydllsExt-2019.py copies
+  # third-party dependency DLLs into libdlls\Release, so only first-party
+  # binaries are signed). AZURE_KEY_VAULT_URI / AZURE_CLIENT_ID / AZURE_TENANT_ID /
+  # AZURE_CLIENT_SECRET / AZURE_CERT_NAME are expected to be registered as
+  # secure project-level Environment variables in AppVeyor.
+  - ps: |
+      if (($env:Configuration -eq "Release") -and ($env:AZURE_KEY_VAULT_URI) -and (!$env:APPVEYOR_PULL_REQUEST_NUMBER)) {
+        Write-Output "Signing build outputs with AzureSignTool"
+
+        dotnet tool install --global AzureSignTool --version 5.0.0
+        $signtool = "$env:USERPROFILE\.dotnet\tools\AzureSignTool.exe"
+
+        $targets = @()
+        $targets += Get-ChildItem "$env:APPVEYOR_BUILD_FOLDER\libdlls\Release\*.dll" -ErrorAction SilentlyContinue
+        $targets += Get-ChildItem "$env:APPVEYOR_BUILD_FOLDER\apps\iricgui\release\iRIC.exe" -ErrorAction SilentlyContinue
+        $targets += Get-ChildItem "$env:APPVEYOR_BUILD_FOLDER\apps\rivmaker\release\Rivmaker.exe" -ErrorAction SilentlyContinue
+        $targets += Get-ChildItem "$env:APPVEYOR_BUILD_FOLDER\apps\tin_simplifier_cui\release\tin_simplifier_cui.exe" -ErrorAction SilentlyContinue
+
+        if ($targets.Count -eq 0) {
+          throw "AzureSignTool: no build outputs found to sign"
+        }
+
+        $fileListPath = "$env:TEMP\azuresigntool_filelist.txt"
+        $targets.FullName | Set-Content -Path $fileListPath -Encoding ascii
+
+        & $signtool sign `
+          -kvu "$env:AZURE_KEY_VAULT_URI" `
+          -kvi "$env:AZURE_CLIENT_ID" `
+          -kvt "$env:AZURE_TENANT_ID" `
+          -kvs "$env:AZURE_CLIENT_SECRET" `
+          -kvc "$env:AZURE_CERT_NAME" `
+          -tr http://timestamp.globalsign.com/tsa/advanced `
+          -td sha256 -fd sha256 -v `
+          --input-file-list $fileListPath
+        if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
+
+        Remove-Item $fileListPath -ErrorAction SilentlyContinue
+      }
   - cd %APPVEYOR_BUILD_FOLDER%\tools
   - set SAVE_PATH=%PATH%
   - set PATH=C:\Python37-x64;%PATH%
