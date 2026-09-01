@@ -259,6 +259,8 @@ void iRICAuthClient::handleCallbackRequest(const QByteArray& request)
 		return;
 	}
 
+	emit authorizationCodeReceived();
+
 	QList<QPair<QString, QString> > params;
 	params << qMakePair(QString("grant_type"), QString("authorization_code"));
 	params << qMakePair(QString("code"), code);
@@ -268,6 +270,16 @@ void iRICAuthClient::handleCallbackRequest(const QByteArray& request)
 	appendDeviceParams(params, impl->m_iricVersion);
 
 	sendTokenRequest(formEncode(params), true);
+}
+
+void iRICAuthClient::cancelInteractiveLogin()
+{
+	if (impl->m_callbackServer == nullptr || impl->m_loginFinished) {
+		// Nothing to cancel, or the token exchange is already under way.
+		return;
+	}
+	closeCallbackServer();
+	finishLogin(false, tr("Sign-in was cancelled."));
 }
 
 void iRICAuthClient::sendTokenRequest(const QByteArray& formBody, bool interactive)

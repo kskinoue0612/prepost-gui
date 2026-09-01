@@ -1912,6 +1912,19 @@ void iRICMainWindow::openHelp()
 void iRICMainWindow::setAuthClient(iRICAuthClient* client)
 {
 	m_authClient = client;
+
+	if (m_authClient != nullptr) {
+		connect(m_authClient, &iRICAuthClient::stateChanged, this, [this]() {
+			m_actionManager->updateAuthMenu();
+		});
+		connect(m_authClient, &iRICAuthClient::loginSucceeded, this, [this]() {
+			statusBar()->showMessage(tr("Signed in to iRIC ID as %1").arg(m_authClient->email()), 5000);
+		});
+		connect(m_authClient, &iRICAuthClient::loggedOut, this, [this]() {
+			statusBar()->showMessage(tr("Signed out from iRIC ID"), 5000);
+		});
+	}
+	m_actionManager->updateAuthMenu();
 }
 
 iRICAuthClient* iRICMainWindow::authClient() const

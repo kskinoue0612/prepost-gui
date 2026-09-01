@@ -27,11 +27,16 @@ public:
 
 private slots:
 	void startSignIn();
+	void cancelSignIn();
+	void handleAuthorizationCodeReceived();
 	void handleLoginSucceeded();
 	void handleLoginFailed(const QString& reason);
-	void updateState();
+	void handleLoggedOut();
 
 private:
+	/// Button visibility + status text for a "resting" (not signing-in) state.
+	void updateRestingState();
+
 	iRICAuthClient* m_client;
 	Ui::iRICAuthDialog* ui;
 };

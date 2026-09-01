@@ -55,6 +55,10 @@ public slots:
 	/// Start the interactive browser login.
 	void startInteractiveLogin();
 
+	/// Abort an interactive login that is still waiting for the browser
+	/// redirect. No-op once the token exchange has started.
+	void cancelInteractiveLogin();
+
 	/// Forget the stored refresh token and the in-memory tokens.
 	void logout();
 
@@ -70,6 +74,9 @@ signals:
 	void loggedOut();
 	/// Emitted whenever the logged-in state may have changed.
 	void stateChanged();
+	/// Emitted after the browser redirect is received, just before the
+	/// authorization code is exchanged for tokens (progress feedback).
+	void authorizationCodeReceived();
 
 private:
 	QString redirectUri() const;

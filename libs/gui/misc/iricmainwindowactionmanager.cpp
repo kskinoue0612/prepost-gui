@@ -12,6 +12,7 @@
 #include <guicore/project/projectmainfile.h>
 #include <guicore/solverdef/solverdefinition.h>
 #include <guicore/solverdef/solverdefinitionabstract.h>
+#include <misc/iricauthclient.h>
 #include <misc/iricundostack.h>
 #include <pre/preprocessorwindow.h>
 #include <solverconsole/solverconsolewindow.h>
@@ -670,11 +671,29 @@ void iRICMainWindowActionManager::setupHelpMenu()
 	m_helpMenu->addAction(iricIdLogoutAction);
 	connect(iricIdLogoutAction, SIGNAL(triggered()), m_parent, SLOT(authLogout()));
 
+	updateAuthMenu();
+
 	m_helpMenu->addSeparator();
 
 	aboutAction = new QAction(tr("&About..."), m_helpMenu);
 	m_helpMenu->addAction(aboutAction);
 	connect(aboutAction, SIGNAL(triggered()), m_parent->m_miscDialogManager, SLOT(about()));
+}
+
+void iRICMainWindowActionManager::updateAuthMenu()
+{
+	iRICAuthClient* client = m_parent->authClient();
+	const bool loggedIn = (client != nullptr) && client->isLoggedIn();
+
+	if (loggedIn) {
+		const QString who = client->email().isEmpty() ? client->userId() : client->email();
+		iricIdLoginAction->setText(tr("Signed in as %1").arg(who));
+		iricIdLoginAction->setEnabled(false);
+	} else {
+		iricIdLoginAction->setText(tr("Sign in with &iRIC ID..."));
+		iricIdLoginAction->setEnabled(true);
+	}
+	iricIdLogoutAction->setEnabled(loggedIn);
 }
 
 void iRICMainWindowActionManager::updateSolverList(SolverDefinitionList* /*list*/)
