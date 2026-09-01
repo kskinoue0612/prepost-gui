@@ -662,6 +662,16 @@ void iRICMainWindowActionManager::setupHelpMenu()
 
 	m_helpMenu->addSeparator();
 
+	iricIdLoginAction = new QAction(tr("Sign in with &iRIC ID..."), m_helpMenu);
+	m_helpMenu->addAction(iricIdLoginAction);
+	connect(iricIdLoginAction, SIGNAL(triggered()), m_parent, SLOT(showAuthDialog()));
+
+	iricIdLogoutAction = new QAction(tr("Sign &out from iRIC ID"), m_helpMenu);
+	m_helpMenu->addAction(iricIdLogoutAction);
+	connect(iricIdLogoutAction, SIGNAL(triggered()), m_parent, SLOT(authLogout()));
+
+	m_helpMenu->addSeparator();
+
 	aboutAction = new QAction(tr("&About..."), m_helpMenu);
 	m_helpMenu->addAction(aboutAction);
 	connect(aboutAction, SIGNAL(triggered()), m_parent->m_miscDialogManager, SLOT(about()));

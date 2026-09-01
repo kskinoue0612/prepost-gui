@@ -239,6 +239,10 @@ public:
 	QAction* aboutMouseAction;
 	/// Action to show "About Dialog" of iRIC
 	QAction* aboutAction;
+	/// Action to sign in with iRIC ID
+	QAction* iricIdLoginAction;
+	/// Action to sign out from iRIC ID
+	QAction* iricIdLogoutAction;
 
 public slots:
 	/// Project file is opened. It should enable actions only available

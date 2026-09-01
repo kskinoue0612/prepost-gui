@@ -13,10 +13,13 @@ PRECOMPILED_HEADER = misc_pch.h
 win32 {
 	DESTDIR = $(SolutionDir)/libdlls/$(Configuration)
 	LIBS += -L$(SolutionDir)/libdlls/$(Configuration)
+	# Windows Credential Manager (wincred) for iRIC ID token storage
+	LIBS += -ladvapi32
 }
 
 # Input
 HEADERS += anms.h \
+           authcredentialstore.h \
            boolcontainer.h \
            colorcontainer.h \
            compositecontainer.h \
@@ -38,6 +41,8 @@ HEADERS += anms.h \
            integerrangecontainer.h \
            interpolator.h \
            intvectorcontainer.h \
+           iricauthclient.h \
+           iricauthdialog.h \
            iricrootpath.h \
            iricundostack.h \
            keyboardsupport.h \
@@ -102,6 +107,7 @@ HEADERS += anms.h \
            private/compositecontainer_impl.h \
            private/edge_detail.h \
            private/enumcontainert_detail.h \
+           private/iricauthclient_impl.h \
            private/latitudelongitude_impl.h \
            private/latitudelongitudeangle_impl.h \
            private/networksetting_impl.h \
@@ -117,6 +123,7 @@ HEADERS += anms.h \
            private/xmlattributecontainer_impl.h \
            private/zdepthrange_impl.h
 FORMS += informationdialog.ui \
+         iricauthdialog.ui \
          modifycommanddialog.ui \
          orderedvalueselectdialog.ui \
          primitiveview.ui \
@@ -126,6 +133,7 @@ FORMS += informationdialog.ui \
          windowsizeeditwidget.ui \
          windowsizestandardsettingeditdialog.ui
 SOURCES += anms.cpp \
+           authcredentialstore.cpp \
            boolcontainer.cpp \
            colorcontainer.cpp \
            compositecontainer.cpp \
@@ -143,6 +151,8 @@ SOURCES += anms.cpp \
            integerrangecontainer.cpp \
            interpolator.cpp \
            intvectorcontainer.cpp \
+           iricauthclient.cpp \
+           iricauthdialog.cpp \
            iricrootpath.cpp \
            iricundostack.cpp \
            keyboardsupport.cpp \
