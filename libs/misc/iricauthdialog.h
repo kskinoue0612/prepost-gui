@@ -6,17 +6,20 @@
 #include <QDialog>
 
 class iRICAuthClient;
+class TelemetryWidget;
 
 namespace Ui
 {
 	class iRICAuthDialog;
 }
 
-/// Sign-in dialog for iRIC ID.
+/// First-run telemetry consent dialog.
 ///
-/// Shown at startup when a silent login is not possible, and also from the
-/// Help menu. The dialog only borrows the iRICAuthClient; it does not own it.
-/// Closing the dialog always lets iRIC continue - signing in is optional.
+/// Shown once at startup, when no telemetry choice has been stored yet. It is
+/// a thin frame around the shared TelemetryWidget plus OK / Cancel; the same
+/// widget is also embedded in the Preferences "Telemetry" tab for later
+/// changes. The dialog only borrows the iRICAuthClient; it does not own it.
+/// Closing the dialog always lets iRIC continue.
 class MISCDLL_EXPORT iRICAuthDialog : public QDialog
 {
 	Q_OBJECT
@@ -25,19 +28,11 @@ public:
 	explicit iRICAuthDialog(iRICAuthClient* client, QWidget* parent = nullptr);
 	~iRICAuthDialog();
 
-private slots:
-	void startSignIn();
-	void cancelSignIn();
-	void handleAuthorizationCodeReceived();
-	void handleLoginSucceeded();
-	void handleLoginFailed(const QString& reason);
-	void handleLoggedOut();
+public slots:
+	void accept() override;
 
 private:
-	/// Button visibility + status text for a "resting" (not signing-in) state.
-	void updateRestingState();
-
-	iRICAuthClient* m_client;
+	TelemetryWidget* m_widget;
 	Ui::iRICAuthDialog* ui;
 };
 

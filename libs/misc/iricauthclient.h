@@ -28,8 +28,26 @@ class MISCDLL_EXPORT iRICAuthClient : public QObject
 	Q_OBJECT
 
 public:
+	/// How much the user agreed to share for telemetry. Persisted as
+	/// "telemetry/mode" in QSettings.
+	enum class TelemetryMode {
+		Unset,      ///< The user has not chosen yet (show the consent dialog).
+		None,       ///< Do not send anything.
+		Anonymous,  ///< Send with anon_id only, no iRIC ID sign-in.
+		Login,      ///< Send and attach the signed-in user's bearer token.
+	};
+
 	/// The production hub URL used when nothing overrides it.
 	static QUrl defaultBaseUrl();
+
+	/// The stored telemetry consent. Returns TelemetryMode::Unset when nothing
+	/// has been chosen yet.
+	static TelemetryMode telemetryMode();
+	static void setTelemetryMode(TelemetryMode mode);
+
+	/// A per-installation anonymous UUID (RFC 4122, lower-case, no braces),
+	/// created and persisted on first use. Shared by every telemetry payload.
+	static QString anonId();
 
 	/// @param baseUrl      Hub base URL (e.g. https://id.i-ric.org).
 	/// @param iricVersion  iRIC GUI version string, reported to the hub.
@@ -62,11 +80,16 @@ public slots:
 	/// Forget the stored refresh token and the in-memory tokens.
 	void logout();
 
-	/// Best-effort "app_launch" telemetry. No-op when not logged in.
+	/// Best-effort "app_launch" telemetry. No-op unless telemetry is enabled.
 	void sendAppLaunchTelemetry();
 
-	/// Best-effort "solver_run" telemetry. No-op when not logged in.
+	/// Best-effort "solver_run" telemetry. No-op unless telemetry is enabled.
 	void sendSolverRunTelemetry(const QString& solverId, const QString& solverVersion);
+
+	/// Best-effort machine-configuration telemetry (POST /api/telemetry/machine).
+	/// Sends the OS / CPU / GPU / memory description once. No-op unless telemetry
+	/// is enabled; sent anonymously when not signed in.
+	void sendMachineTelemetry();
 
 signals:
 	void loginSucceeded();

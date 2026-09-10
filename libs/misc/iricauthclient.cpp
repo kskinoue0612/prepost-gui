@@ -2,6 +2,7 @@
 #include "private/iricauthclient_impl.h"
 
 #include "authcredentialstore.h"
+#include "machineinfo.h"
 #include "qttool.h"
 
 #include <QByteArray>
@@ -18,12 +19,14 @@
 #include <QNetworkRequest>
 #include <QPair>
 #include <QRandomGenerator>
+#include <QSettings>
 #include <QStringList>
 #include <QSysInfo>
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTimer>
 #include <QUrlQuery>
+#include <QUuid>
 
 namespace {
 
@@ -32,6 +35,18 @@ const char* CALLBACK_PATH = "/callback";
 const char* PATH_AUTHORIZE = "/authorize";
 const char* PATH_TOKEN = "/api/oauth/token";
 const char* PATH_TELEMETRY = "/api/telemetry/events";
+const char* PATH_TELEMETRY_MACHINE = "/api/telemetry/machine";
+
+const char* SETTINGS_TELEMETRY_MODE = "telemetry/mode";
+const char* SETTINGS_TELEMETRY_ANON_ID = "telemetry/anonId";
+
+// Values written under SETTINGS_TELEMETRY_MODE.
+const char* MODE_NONE = "none";
+const char* MODE_ANONYMOUS = "anonymous";
+const char* MODE_LOGIN = "login";
+
+// Telemetry strings are capped by the hub; keep the wire small and match that.
+const int TELEMETRY_VALUE_MAX = 200;
 
 // The interactive browser login is abandoned after this long.
 const int INTERACTIVE_TIMEOUT_MS = 5 * 60 * 1000;
@@ -89,11 +104,64 @@ void appendDeviceParams(QList<QPair<QString, QString> >& params, const QString& 
 	params << qMakePair(QString("iric_version"), iricVersion);
 }
 
+iRICAuthClient::TelemetryMode modeFromString(const QString& s)
+{
+	if (s == QLatin1String(MODE_NONE)) {return iRICAuthClient::TelemetryMode::None;}
+	if (s == QLatin1String(MODE_ANONYMOUS)) {return iRICAuthClient::TelemetryMode::Anonymous;}
+	if (s == QLatin1String(MODE_LOGIN)) {return iRICAuthClient::TelemetryMode::Login;}
+	return iRICAuthClient::TelemetryMode::Unset;
+}
+
+QString modeToString(iRICAuthClient::TelemetryMode mode)
+{
+	switch (mode) {
+	case iRICAuthClient::TelemetryMode::None:      return QString::fromLatin1(MODE_NONE);
+	case iRICAuthClient::TelemetryMode::Anonymous: return QString::fromLatin1(MODE_ANONYMOUS);
+	case iRICAuthClient::TelemetryMode::Login:     return QString::fromLatin1(MODE_LOGIN);
+	case iRICAuthClient::TelemetryMode::Unset:     return QString();
+	}
+	return QString();
+}
+
+// Truncate to the hub's per-value limit (it would trim the overflow anyway).
+QString clip(const QString& s)
+{
+	return s.left(TELEMETRY_VALUE_MAX);
+}
+
 } // namespace
 
 QUrl iRICAuthClient::defaultBaseUrl()
 {
 	return QUrl(QStringLiteral("https://id.i-ric.org"));
+}
+
+iRICAuthClient::TelemetryMode iRICAuthClient::telemetryMode()
+{
+	QSettings settings;
+	return modeFromString(settings.value(QString::fromLatin1(SETTINGS_TELEMETRY_MODE)).toString());
+}
+
+void iRICAuthClient::setTelemetryMode(TelemetryMode mode)
+{
+	QSettings settings;
+	if (mode == TelemetryMode::Unset) {
+		settings.remove(QString::fromLatin1(SETTINGS_TELEMETRY_MODE));
+	} else {
+		settings.setValue(QString::fromLatin1(SETTINGS_TELEMETRY_MODE), modeToString(mode));
+	}
+}
+
+QString iRICAuthClient::anonId()
+{
+	QSettings settings;
+	const QString key = QString::fromLatin1(SETTINGS_TELEMETRY_ANON_ID);
+	QString id = settings.value(key).toString();
+	if (id.isEmpty()) {
+		id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+		settings.setValue(key, id);
+	}
+	return id;
 }
 
 iRICAuthClient::iRICAuthClient(const QUrl& baseUrl, const QString& iricVersion, QObject* parent) :
@@ -379,6 +447,7 @@ void iRICAuthClient::sendAppLaunchTelemetry()
 {
 	QJsonObject event;
 	event.insert("type", "app_launch");
+	event.insert("anon_id", anonId());
 	event.insert("iric_version", impl->m_iricVersion);
 	event.insert("os", "windows");
 
@@ -391,6 +460,7 @@ void iRICAuthClient::sendSolverRunTelemetry(const QString& solverId, const QStri
 {
 	QJsonObject event;
 	event.insert("type", "solver_run");
+	event.insert("anon_id", anonId());
 	event.insert("solver_id", solverId);
 	event.insert("solver_version", solverVersion);
 	event.insert("iric_version", impl->m_iricVersion);
@@ -401,9 +471,46 @@ void iRICAuthClient::sendSolverRunTelemetry(const QString& solverId, const QStri
 	postTelemetry(events);
 }
 
+void iRICAuthClient::sendMachineTelemetry()
+{
+	const TelemetryMode mode = telemetryMode();
+	if (mode == TelemetryMode::None || mode == TelemetryMode::Unset) {return;}
+
+	QNetworkAccessManager* manager = nam();
+	if (manager == nullptr) {return;}
+
+	const MachineInfo mi = collectMachineInfo();
+
+	QJsonObject body;
+	body.insert("anon_id", anonId());
+	body.insert("os_name", clip(mi.osName));
+	body.insert("os_version", clip(mi.osVersion));
+	body.insert("cpu_name", clip(mi.cpuName));
+	body.insert("gpu_name", clip(mi.gpuName));
+	body.insert("memory_size", clip(mi.memorySize));
+	body.insert("iric_version", clip(impl->m_iricVersion));
+
+	QNetworkRequest req(impl->m_baseUrl.resolved(QUrl(QString::fromLatin1(PATH_TELEMETRY_MACHINE))));
+	req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+	if (isLoggedIn()) {
+		req.setRawHeader("Authorization", "Bearer " + impl->m_accessToken.toUtf8());
+	}
+
+	QNetworkReply* reply = manager->post(req, QJsonDocument(body).toJson(QJsonDocument::Compact));
+	connect(reply, &QNetworkReply::finished, this, [reply]() {
+		const int code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+		if (code != 204) {
+			// Best effort: a telemetry failure never affects the application.
+			qWarning() << "iRIC ID machine telemetry failed:" << code << reply->errorString();
+		}
+		reply->deleteLater();
+	});
+}
+
 void iRICAuthClient::postTelemetry(const QJsonArray& events)
 {
-	if (! isLoggedIn()) {return;}
+	const TelemetryMode mode = telemetryMode();
+	if (mode == TelemetryMode::None || mode == TelemetryMode::Unset) {return;}
 
 	QNetworkAccessManager* manager = nam();
 	if (manager == nullptr) {return;}
@@ -413,7 +520,11 @@ void iRICAuthClient::postTelemetry(const QJsonArray& events)
 
 	QNetworkRequest req(impl->m_baseUrl.resolved(QUrl(QString::fromLatin1(PATH_TELEMETRY))));
 	req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-	req.setRawHeader("Authorization", "Bearer " + impl->m_accessToken.toUtf8());
+	// Bearer is optional: attach it only when signed in, otherwise the events
+	// are recorded against the anonymous id alone.
+	if (isLoggedIn()) {
+		req.setRawHeader("Authorization", "Bearer " + impl->m_accessToken.toUtf8());
+	}
 
 	QNetworkReply* reply = manager->post(req, QJsonDocument(root).toJson(QJsonDocument::Compact));
 	connect(reply, &QNetworkReply::finished, this, [reply]() {

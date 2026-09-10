@@ -47,10 +47,6 @@ public:
 	 * shown / hidden in this function.
 	 */
 	void updateMenuBar();
-	/// Refresh the Help-menu iRIC ID sign-in / sign-out items from the
-	/// current auth client state (label with the signed-in account, enabled
-	/// state). Safe to call when no auth client is set yet.
-	void updateAuthMenu();
 	void setAdditionalMenus(const QList<QMenu*>& menus);
 	void unregisterAdditionalToolBar();
 	QMenu* recentProjectsMenu() const;
@@ -243,10 +239,6 @@ public:
 	QAction* aboutMouseAction;
 	/// Action to show "About Dialog" of iRIC
 	QAction* aboutAction;
-	/// Action to sign in with iRIC ID
-	QAction* iricIdLoginAction;
-	/// Action to sign out from iRIC ID
-	QAction* iricIdLogoutAction;
 
 public slots:
 	/// Project file is opened. It should enable actions only available

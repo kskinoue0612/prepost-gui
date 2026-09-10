@@ -205,11 +205,6 @@ public slots:
 
 	void setupRecentProjectsMenu();
 
-	/// Show the iRIC ID sign-in dialog (Help menu).
-	void showAuthDialog();
-	/// Sign out from iRIC ID (Help menu).
-	void authLogout();
-
 	/// Clear calculation result in the current CGNS file.
 	void clearCalculationResult();
 	/// Manage calculated results;

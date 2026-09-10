@@ -15,6 +15,8 @@ win32 {
 	LIBS += -L$(SolutionDir)/libdlls/$(Configuration)
 	# Windows Credential Manager (wincred) for iRIC ID token storage
 	LIBS += -ladvapi32
+	# EnumDisplayDevices (GPU name) for machine telemetry
+	LIBS += -luser32
 }
 
 # Input
@@ -49,6 +51,7 @@ HEADERS += anms.h \
            latitudelongitude.h \
            latitudelongitudeangle.h \
            linearinterpolator.h \
+           machineinfo.h \
            mathsupport.h \
            mergesupportedlistcommand.h \
            misc_global.h \
@@ -85,6 +88,7 @@ HEADERS += anms.h \
            standarderrormessages.h \
            stringcontainer.h \
            stringtool.h \
+           telemetrywidget.h \
            threadwithprogressinfo.h \
            tooltiplabel.h \
            tpoexporter.h \
@@ -129,6 +133,7 @@ FORMS += informationdialog.ui \
          primitiveview.ui \
          qfonteditwidget.ui \
          slowmotionspeededitdialog.ui \
+         telemetrywidget.ui \
          valueselectdialog.ui \
          windowsizeeditwidget.ui \
          windowsizestandardsettingeditdialog.ui
@@ -159,6 +164,7 @@ SOURCES += anms.cpp \
            latitudelongitude.cpp \
            latitudelongitudeangle.cpp \
            linearinterpolator.cpp \
+           machineinfo.cpp \
            mathsupport.cpp \
            mergesupportedlistcommand.cpp \
            modifycommanddialog.cpp \
@@ -191,6 +197,7 @@ SOURCES += anms.cpp \
            standarderrormessages.cpp \
            stringcontainer.cpp \
            stringtool.cpp \
+           telemetrywidget.cpp \
            threadwithprogressinfo.cpp \
            tooltiplabel.cpp \
            tpoexporter.cpp \

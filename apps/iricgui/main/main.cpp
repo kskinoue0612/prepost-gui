@@ -122,11 +122,13 @@ int main(int argc, char* argv[])
 	try {
 		iRICMainWindow w;
 
-		// iRIC ID authentication. Best effort: signing in is optional and
-		// never blocks iRIC from starting.
+		// iRIC ID authentication and telemetry. Best effort: every part of this
+		// is optional and never blocks iRIC from starting.
 		iRICAuthClient authClient(resolveAuthBaseUrl(argc, argv, settings), w.versionNumber().toString());
 		w.setAuthClient(&authClient);
-		if (authClient.hasStoredCredential()) {
+
+		const auto telemetryMode = iRICAuthClient::telemetryMode();
+		if (telemetryMode == iRICAuthClient::TelemetryMode::Login && authClient.hasStoredCredential()) {
 			// Try a silent login, but do not let a slow network hold up startup.
 			QEventLoop loop;
 			QObject::connect(&authClient, &iRICAuthClient::loginSucceeded, &loop, &QEventLoop::quit);
@@ -135,7 +137,9 @@ int main(int argc, char* argv[])
 			authClient.trySilentLogin();
 			loop.exec();
 		}
-		if (! authClient.isLoggedIn()) {
+		if (telemetryMode == iRICAuthClient::TelemetryMode::Unset) {
+			// First run: ask what the user is willing to share. The dialog
+			// persists the choice; later changes go through Preferences.
 			splash.hide();
 			iRICAuthDialog dlg(&authClient, &w);
 			dlg.exec();
@@ -173,8 +177,12 @@ int main(int argc, char* argv[])
 				w.openStartDialog();
 			}
 		}
-		// Report the launch once the event loop is running (no-op if not signed in).
-		QTimer::singleShot(0, &authClient, [&authClient]() { authClient.sendAppLaunchTelemetry(); });
+		// Report the launch and the machine configuration once the event loop is
+		// running (both no-op unless the user opted in to telemetry).
+		QTimer::singleShot(0, &authClient, [&authClient]() {
+			authClient.sendAppLaunchTelemetry();
+			authClient.sendMachineTelemetry();
+		});
 		return a.exec();
 	} catch (const ErrorMessage& msg) {
 		QMessageBox::critical(&splash, iRICMainWindow::tr("Error"), msg);

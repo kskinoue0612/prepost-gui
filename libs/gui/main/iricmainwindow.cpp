@@ -59,7 +59,6 @@
 #include <misc/filesystemfunction.h>
 #include <misc/informationdialog.h>
 #include <misc/iricauthclient.h>
-#include <misc/iricauthdialog.h>
 #include <misc/iricundostack.h>
 #include <misc/iricrootpath.h>
 #include <misc/projectlastiodirectory.h>
@@ -1776,7 +1775,7 @@ void iRICMainWindow::updateWindowList()
 
 void iRICMainWindow::showPreferenceDialog()
 {
-	PreferenceDialog dialog(this);
+	PreferenceDialog dialog(this, m_authClient);
 	dialog.exec();
 
 	setupNetworkProxy();
@@ -1914,9 +1913,6 @@ void iRICMainWindow::setAuthClient(iRICAuthClient* client)
 	m_authClient = client;
 
 	if (m_authClient != nullptr) {
-		connect(m_authClient, &iRICAuthClient::stateChanged, this, [this]() {
-			m_actionManager->updateAuthMenu();
-		});
 		connect(m_authClient, &iRICAuthClient::loginSucceeded, this, [this]() {
 			statusBar()->showMessage(tr("Signed in to iRIC ID as %1").arg(m_authClient->email()), 5000);
 		});
@@ -1924,27 +1920,11 @@ void iRICMainWindow::setAuthClient(iRICAuthClient* client)
 			statusBar()->showMessage(tr("Signed out from iRIC ID"), 5000);
 		});
 	}
-	m_actionManager->updateAuthMenu();
 }
 
 iRICAuthClient* iRICMainWindow::authClient() const
 {
 	return m_authClient;
-}
-
-void iRICMainWindow::showAuthDialog()
-{
-	if (m_authClient == nullptr) {return;}
-
-	iRICAuthDialog dialog(m_authClient, this);
-	dialog.exec();
-}
-
-void iRICMainWindow::authLogout()
-{
-	if (m_authClient == nullptr) {return;}
-
-	m_authClient->logout();
 }
 
 void iRICMainWindow::sendSolverRunTelemetry()
